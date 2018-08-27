@@ -1,6 +1,6 @@
 ## recyclr
 
-Project for *CS 407 Fall 2018*.
+Project for **CS 407 Fall 2018**
 
 
 ### Members
