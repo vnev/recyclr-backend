@@ -1,6 +1,6 @@
-## recyclr
+## recyclr backend
 
-Project for **CS 407 Fall 2018**
+Backend Project for **CS 407 Fall 2018**
 
 
 ### Members
