@@ -1,0 +1,3 @@
+[submodule "recyclr-frontend"]
+	path = recyclr-frontend
+	url = git@github.com:vnev/recyclr-frontend.git
