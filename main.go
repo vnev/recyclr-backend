@@ -5,27 +5,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	graphql "github.com/graph-gophers/graphql-go"
-	"github.com/graph-gophers/graphql-go/relay"
+	h "github.com/vnev/recyclr-backend/handlers"
 )
-
-type query struct{}
-
-func (*query) Hello() string {
-	return "Hello World"
-}
 
 func main() {
 	router := mux.NewRouter()
-	s := `
-			schema {
-				query: Query
-			}
-			type Query {
-				hello: String!
-			}
-		`
-	schema := graphql.MustParseSchema(s, &query{})
-	http.Handle("/query", &relay.Handler{Schema: schema})
+	router.HandleFunc("/user", h.CreateUser).Methods("POST")
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
