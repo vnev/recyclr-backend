@@ -10,6 +10,7 @@ import (
 
 func main() {
 	router := mux.NewRouter()
+	router.HandleFunc("/user", h.GetUser).Methods("GET")
 	router.HandleFunc("/user", h.CreateUser).Methods("POST")
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
