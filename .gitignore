@@ -24,3 +24,4 @@ chrome-user-data
 *.swo
 .env
 config.json
+recycler-backend
