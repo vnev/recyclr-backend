@@ -11,11 +11,12 @@ import (
 
 func main() {
 	router := mux.NewRouter()
-	router.HandleFunc("/user", h.GetUser).Methods("GET")
+	router.HandleFunc("/user/{id}", h.GetUser).Methods("GET")
+	router.HandleFunc("/users", h.GetUsers).Methods("GET")
 	router.HandleFunc("/user", h.CreateUser).Methods("POST")
 
-	db := db.ConnectToDB()
-	defer db.Close()
+	db.ConnectToDB()
+	defer db.DBconn.Close()
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

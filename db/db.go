@@ -9,21 +9,27 @@ import (
 	"github.com/vnev/recyclr-backend/config"
 )
 
+// DBconn : the main db connection object
+var DBconn *sql.DB
+
 // ConnectToDB : function that opens a connection to the database, given a config file name
-func ConnectToDB() *sql.DB {
+func ConnectToDB() {
+	var err error
 	c := config.LoadConfiguration("config.json")
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", c.DBHost, 5432, c.DBUser, c.DBPass, c.DBUser)
-	db, err := sql.Open("postgres", psqlInfo)
+	DBconn, err = sql.Open("postgres", psqlInfo)
 	if err != nil {
 		panic(err)
 	}
 
-	if err = db.Ping(); err != nil {
+	if err = DBconn.Ping(); err != nil {
 		fmt.Printf("err is %s\n", err)
 		fmt.Println("Retry database connection in 5 seconds... ")
 		time.Sleep(time.Duration(5) * time.Second)
-		return ConnectToDB()
+		ConnectToDB()
 	}
+
+	//defer DBconn.Close()
 
 	/*sqlStatement := `
 		INSERT INTO users (age, email, first_name, last_name)
@@ -51,5 +57,5 @@ func ConnectToDB() *sql.DB {
 	fmt.Printf("Returned row is id: %d, age: %d, firstName: %s, lastName: %s, email: %s\n", id, age, firstName, lastName, email)*/
 
 	fmt.Println("Successfully connected!")
-	return db
+	//return db
 }
