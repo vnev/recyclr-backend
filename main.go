@@ -11,9 +11,13 @@ import (
 
 func main() {
 	router := mux.NewRouter()
-	router.HandleFunc("/user/{id}", h.GetUser).Methods("GET")
 	router.HandleFunc("/users", h.GetUsers).Methods("GET")
+	router.HandleFunc("/user/{id}", h.GetUser).Methods("GET")
 	router.HandleFunc("/user", h.CreateUser).Methods("POST")
+
+	router.HandleFunc("/companies", h.GetCompanies).Methods("GET")
+	router.HandleFunc("/company/{id}", h.GetUser).Methods("GET") // yes it is supposed to be GetUser not GetCompany
+	router.HandleFunc("/company", h.CreateCompany).Methods("POST")
 
 	db.ConnectToDB()
 	defer db.DBconn.Close()

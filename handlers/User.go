@@ -49,11 +49,11 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&user)
 }
 
-// GetUsers : function to return a user from the database
+// GetUsers : function to return all users from the database
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	var users []User
 	w.Header().Set("Content-Type", "application/json")
-	rows, err := db.DBconn.Query("SELECT user_id, user_name FROM users")
+	rows, err := db.DBconn.Query("SELECT user_id, user_name FROM users WHERE is_company=false")
 	if err != nil {
 		//fmt.Println(err)
 		panic(err)
