@@ -19,6 +19,10 @@ func main() {
 	router.HandleFunc("/company/{id}", h.GetUser).Methods("GET") // yes it is supposed to be GetUser not GetCompany
 	router.HandleFunc("/company", h.CreateCompany).Methods("POST")
 
+	router.HandleFunc("/listings", h.GetListings).Methods("GET")
+	router.HandleFunc("/listing/{id}", h.GetListing).Methods("GET")
+	router.HandleFunc("/listing", h.CreateListing).Methods("POST")
+
 	db.ConnectToDB()
 	defer db.DBconn.Close()
 
