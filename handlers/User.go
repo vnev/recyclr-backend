@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/vnev/recyclr-backend/db"
@@ -97,21 +99,54 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 // UpdateUser : function to update a user in the database
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	/*var users []User // TODO: actually get this to read in users from the DB
 	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	for index, user := range users {
-		if user.ID == params["id"] {
-			users = append(users[:index], users[index+1:]...)
-			var newUser User
-			_ = json.NewDecoder(r.Body).Decode(&newUser)
-			newUser.ID = params["id"]
-			users = append(users, newUser)
-			json.NewEncoder(w).Encode(newUser)
-			return
+	var user User
+	json.NewDecoder(r.Body).Decode(&user)
+
+	params := mux.Vars(r) // Get route params
+	userID, err := strconv.Atoi(params["id"])
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+
+	var values []interface{}
+	j := 1
+	sqlStatement := "UPDATE users SET "
+
+	// Time to iteratively loop over a struct, the easiest to understand syntax ever!
+	structIterator := reflect.ValueOf(user)
+	for i := 0; i < structIterator.NumField(); i++ {
+		//fmt.Printf("field: %+v, value: %+v\n", structIterator.Type().Field(i).Name, structIterator.Field(i).Interface())
+		field := structIterator.Type().Field(i).Name
+		val := structIterator.Field(i).Interface()
+
+		// Check if the field is zero-valued, meaning it won't be updated
+		fmt.Printf("VAL IS %v and TYPE IS %v and ZERO OF TYPE IS %v\n", val, structIterator.Field(i).Type(), reflect.Zero(structIterator.Field(i).Type()).Interface())
+		if !reflect.DeepEqual(val, reflect.Zero(structIterator.Field(i).Type()).Interface()) {
+			fmt.Printf("%v is non-zero, adding to update\n", field)
+			sqlStatement = sqlStatement + strings.ToLower(field) + "=$" + strconv.Itoa(j) + ", "
+			j++
+			values = append(values, val)
 		}
 	}
-	json.NewEncoder(w).Encode(users)*/
+
+	sqlStatement = sqlStatement[:len(sqlStatement)-2]
+	sqlStatement = sqlStatement + " WHERE user_id " + "=$" + strconv.Itoa(j)
+	values = append(values, userID)
+	fmt.Printf("executing SQL: \n\t%s\n", sqlStatement)
+	db.DBconn.QueryRow(sqlStatement, values...) //.Scan(&user.ID, &user.Name)
+
+	var resMap map[string]string
+	resMap["message"] = "Success"
+	res, err := json.Marshal(resMap)
+
+	if err != nil {
+		panic(err)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
+	//json.NewEncoder(w).Encode({"status": "200", "message": "success"})
 }
 
 // DeleteUser : function to delete a user from the database

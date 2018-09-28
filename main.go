@@ -12,6 +12,7 @@ import (
 func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/users", h.GetUsers).Methods("GET")
+	router.HandleFunc("/user/{id}", h.UpdateUser).Methods("PUT")
 	router.HandleFunc("/user/{id}", h.GetUser).Methods("GET")
 	router.HandleFunc("/user", h.CreateUser).Methods("POST")
 
