@@ -22,7 +22,7 @@ type User struct {
 	IsCompany bool   `json:"is_company"`
 	Rating    int    `json:"rating"`
 	JoinedOn  string `json:"joined_on"`
-	Password  string `json:"password"`
+	Password  string `json:"passwd"`
 }
 
 // GetUser : function to return a user from the database
@@ -84,7 +84,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&user)
 	//fmt.Printf("read from r: addres is %s, email is %s, name is %s, pass is %s", user.Address, user.Email, user.Name, user.Password)
 	sqlStatement := `
-	INSERT INTO users (address, email, user_name, is_company, password)
+	INSERT INTO users (address, email, user_name, is_company, passwd)
 	VALUES ($1, $2, $3, $4, crypt($5, gen_salt('md5')))
 	RETURNING user_id`
 	id := 0
