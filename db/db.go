@@ -16,7 +16,7 @@ var DBconn *sql.DB
 func ConnectToDB() {
 	var err error
 	c := config.LoadConfiguration("config.json")
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", c.DBHost, 5432, c.DBUser, c.DBPass, c.DBName)
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s", c.DBHost, 5432, c.DBUser, c.DBPass, c.DBName)
 	DBconn, err = sql.Open("postgres", psqlInfo)
 	if err != nil {
 		panic(err)
