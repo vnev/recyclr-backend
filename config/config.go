@@ -11,6 +11,7 @@ type Config struct {
 	DBHost string `json:"dbhost"`
 	DBPass string `json:"dbpass"`
 	DBUser string `json:"dbuser"`
+	DBName string `json:"dbname"`
 }
 
 // LoadConfiguration : loads the info in from the config.json file
