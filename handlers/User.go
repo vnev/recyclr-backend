@@ -121,7 +121,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		val := structIterator.Field(i).Interface()
 
 		// Check if the field is zero-valued, meaning it won't be updated
-		fmt.Printf("VAL IS %v and TYPE IS %v and ZERO OF TYPE IS %v\n", val, structIterator.Field(i).Type(), reflect.Zero(structIterator.Field(i).Type()).Interface())
+		//fmt.Printf("VAL IS %v and TYPE IS %v and ZERO OF TYPE IS %v\n", val, structIterator.Field(i).Type(), reflect.Zero(structIterator.Field(i).Type()).Interface())
 		if !reflect.DeepEqual(val, reflect.Zero(structIterator.Field(i).Type()).Interface()) {
 			fmt.Printf("%v is non-zero, adding to update\n", field)
 			sqlStatement = sqlStatement + strings.ToLower(field) + "=$" + strconv.Itoa(j) + ", "
@@ -131,13 +131,21 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sqlStatement = sqlStatement[:len(sqlStatement)-2]
-	sqlStatement = sqlStatement + " WHERE user_id " + "=$" + strconv.Itoa(j)
+	sqlStatement = sqlStatement + " WHERE user_id" + "=$" + strconv.Itoa(j)
 	values = append(values, userID)
 	fmt.Printf("executing SQL: \n\t%s\n", sqlStatement)
-	db.DBconn.QueryRow(sqlStatement, values...) //.Scan(&user.ID, &user.Name)
+	fmt.Printf("$1 is %s and $2 is %d\n", values[0], values[1])
+	row, err := db.DBconn.Exec(sqlStatement, values...) //.Scan(&user.ID, &user.Name)
 
-	var resMap map[string]string
+	count, err := row.RowsAffected()
+
+	if err != nil {
+		panic(err)
+	}
+
+	resMap := make(map[string]string)
 	resMap["message"] = "Success"
+	resMap["Rows Affected"] = strconv.FormatInt(count, 10)
 	res, err := json.Marshal(resMap)
 
 	if err != nil {
