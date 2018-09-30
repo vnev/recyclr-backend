@@ -24,7 +24,7 @@ func ConnectToDB() {
 
 	if err = DBconn.Ping(); err != nil {
 		fmt.Printf("err is %s\n", err)
-		fmt.Println("Retry database connection in 5 seconds... ")
+		fmt.Println("Retrying database connection in 5 seconds...")
 		time.Sleep(time.Duration(5) * time.Second)
 		ConnectToDB()
 	}
