@@ -3,10 +3,9 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"github.com/vnev/recyclr-backend/db"
 	h "github.com/vnev/recyclr-backend/handlers"
 )
@@ -30,9 +29,12 @@ func main() {
 	db.ConnectToDB()
 	defer db.DBconn.Close()
 
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3333", "https://localhost:3333"},
+		AllowCredentials: true,
+	})
+
+	handler := c.Handler(router)
 	// try manual allowed headers to see if this shite works
-	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
-	originsOk := handlers.AllowedOrigins([]string{os.Getenv("ORIGIN_ALLOWED")})
-	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
-	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(originsOk, headersOk, methodsOk)(router)))
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }
