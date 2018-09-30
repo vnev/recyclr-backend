@@ -27,7 +27,16 @@ type User struct {
 
 // GetUser : function to return a user from the database
 func GetUser(w http.ResponseWriter, r *http.Request) {
-	var user User
+	type retUser struct {
+		ID        int    `json:"user_id"`
+		Address   string `json:"address"`
+		Email     string `json:"email"`
+		Name      string `json:"name"`
+		IsCompany bool   `json:"is_company"`
+		Rating    int    `json:"rating"`
+		JoinedOn  string `json:"joined_on"`
+	}
+	var user retUser
 	w.Header().Set("Content-Type", "application/json")
 
 	params := mux.Vars(r) // Get route params
@@ -37,8 +46,8 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//fmt.Printf("id route param is %d\n", userID)
-	sqlStatement := "SELECT user_id, user_name FROM users WHERE user_id=$1"
-	err = db.DBconn.QueryRow(sqlStatement, userID).Scan(&user.ID, &user.Name)
+	sqlStatement := "SELECT user_id, address, email, user_name, is_company, rating, joined_on FROM users WHERE user_id=$1"
+	err = db.DBconn.QueryRow(sqlStatement, userID).Scan(&user.ID, &user.Address, &user.Email, &user.Name, &user.IsCompany, &user.Rating, &user.JoinedOn)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
