@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/vnev/recyclr-backend/db"
 	h "github.com/vnev/recyclr-backend/handlers"
@@ -23,9 +24,10 @@ func main() {
 	router.HandleFunc("/listings", h.GetListings).Methods("GET")
 	router.HandleFunc("/listing/{id}", h.GetListing).Methods("GET")
 	router.HandleFunc("/listing", h.CreateListing).Methods("POST")
+	// router.handleFunc("/listing/update", h.UpdateListing).Methods("POST")
 
 	db.ConnectToDB()
 	defer db.DBconn.Close()
 
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(":8080", handlers.CORS()(router)))
 }
