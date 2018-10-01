@@ -27,16 +27,9 @@ type User struct {
 
 // GetUser : function to return a user from the database
 func GetUser(w http.ResponseWriter, r *http.Request) {
-	type retUser struct {
-		ID        int    `json:"user_id"`
-		Address   string `json:"address"`
-		Email     string `json:"email"`
-		Name      string `json:"name"`
-		IsCompany bool   `json:"is_company"`
-		Rating    int    `json:"rating"`
-		JoinedOn  string `json:"joined_on"`
-	}
-	var user retUser
+	// this returns a blank password field but it looks jank anyway
+	// TODO: maybe just return a newly defined struct without password field
+	var user User
 	w.Header().Set("Content-Type", "application/json")
 
 	params := mux.Vars(r) // Get route params
@@ -58,32 +51,6 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(&user)
-}
-
-// GetUsers : function to return all users from the database
-func GetUsers(w http.ResponseWriter, r *http.Request) {
-	var users []User
-	w.Header().Set("Content-Type", "application/json")
-	rows, err := db.DBconn.Query("SELECT user_id, user_name FROM users WHERE is_company=false")
-	if err != nil {
-		//fmt.Println(err)
-		panic(err)
-	}
-
-	defer rows.Close()
-	for rows.Next() {
-		var user User
-		err = rows.Scan(&user.ID, &user.Name)
-		fmt.Printf("ID is %d, Name is %s\n", user.ID, user.Name)
-		users = append(users, user)
-	}
-
-	err = rows.Err()
-	if err != nil {
-		panic(err)
-	}
-
-	json.NewEncoder(w).Encode(users)
 }
 
 // CreateUser : function to create a new user in the database
@@ -154,7 +121,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	resMap := make(map[string]string)
 	resMap["message"] = "Success"
-	resMap["Rows Affected"] = strconv.FormatInt(count, 10)
+	resMap["rows affected"] = strconv.FormatInt(count, 10)
 	res, err := json.Marshal(resMap)
 
 	if err != nil {

@@ -13,11 +13,14 @@ import (
 
 // Listing : basic listing schema
 type Listing struct {
-	ID             int    `json:"listing_id"`
-	MaterialType   string `json:"material_type"`
-	MaterialWeight int    `json:"material_weight"`
-	UserID         int    `json:"user_id"`
-	Active         bool   `json:"is_active"`
+	ID             int     `json:"listing_id"`
+	Title          string  `json:"title"`
+	Description    string  `json:"description"`
+	ImageHash      string  `json:"img_hash"`
+	MaterialType   string  `json:"material_type"`
+	MaterialWeight float64 `json:"material_weight"`
+	UserID         int     `json:"user_id"`
+	Active         bool    `json:"is_active"`
 }
 
 // GetListing : function to return a listing from the database
@@ -32,8 +35,8 @@ func GetListing(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//fmt.Printf("id route param is %d\n", userID)
-	sqlStatement := "SELECT listing_id, material_type, material_weight FROM listings WHERE listing_id=$1"
-	err = db.DBconn.QueryRow(sqlStatement, listingID).Scan(&listing.ID, &listing.MaterialType, &listing.MaterialWeight)
+	sqlStatement := "SELECT title, description, img_hash, material_type, material_weight, active FROM listings WHERE listing_id=$1"
+	err = db.DBconn.QueryRow(sqlStatement, listingID).Scan(&listing.Title, &listing.Description, &listing.ImageHash, &listing.MaterialType, &listing.MaterialWeight, &listing.Active)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -76,39 +79,44 @@ func GetListings(w http.ResponseWriter, r *http.Request) {
 func CreateListing(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var listing Listing
-	_ = json.NewDecoder(r.Body).Decode(&listing)
+	err := json.NewDecoder(r.Body).Decode(&listing)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	fmt.Println("LISTING IS: ", listing)
 	//fmt.Printf("read from r: addres is %s, email is %s, name is %s, pass is %s", user.Address, user.Email, user.Name, user.Password)
 	sqlStatement := `
-	INSERT INTO listings (material_type, material_weight, user_id, active)
-	VALUES ($1, $2, $3, $4)
+	INSERT INTO listings (title, description, img_hash, material_type, material_weight, user_id)
+	VALUES ($1, $2, $3, $4, $5, $6)
 	RETURNING listing_id`
 	id := 0
-	err := db.DBconn.QueryRow(sqlStatement, listing.MaterialType, listing.MaterialWeight, listing.UserID, false).Scan(&id)
+	err = db.DBconn.QueryRow(sqlStatement, listing.Title, listing.Description, listing.ImageHash, listing.MaterialType, listing.MaterialWeight, listing.UserID).Scan(&id)
 	if err != nil {
 		fmt.Println(err)
 		panic(err)
 	}
-	fmt.Println("New listing created with ID:", id)
+	fmt.Println("New listing created with ID: ", id)
 	json.NewEncoder(w).Encode(listing)
 }
 
 // UpdateListing : function to update a listing in the database
 func UpdateListing(w http.ResponseWriter, r *http.Request) {
-	/*var users []User // TODO: actually get this to read in users from the DB
 	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	for index, user := range users {
-		if user.ID == params["id"] {
-			users = append(users[:index], users[index+1:]...)
-			var newUser User
-			_ = json.NewDecoder(r.Body).Decode(&newUser)
-			newUser.ID = params["id"]
-			users = append(users, newUser)
-			json.NewEncoder(w).Encode(newUser)
-			return
-		}
+	var listing Listing
+	if err := json.NewDecoder(r.Body).Decode(&listing); err != nil {
+		fmt.Println(err)
+		panic(err)
 	}
-	json.NewEncoder(w).Encode(users)*/
+
+	params := mux.Vars(r)
+	_, err := strconv.Atoi(params["id"])
+
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+
+	// _ := "UPDATE listings SET "
 }
 
 // DeleteListing : function to delete a listing from the database
