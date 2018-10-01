@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"github.com/vnev/recyclr-backend/db"
 	h "github.com/vnev/recyclr-backend/handlers"
 )
@@ -30,12 +30,12 @@ func main() {
 	db.ConnectToDB()
 	defer db.DBconn.Close()
 
-	c := handlers.AllowedOrigins([]string{"*"})
+	handler := cors.Default().Handler(router)
 
 	// try manual allowed headers to see if this shite works
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
-	log.Fatal(http.ListenAndServe(":"+port, handlers.CORS(c)(router)))
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
