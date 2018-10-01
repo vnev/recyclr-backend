@@ -23,5 +23,4 @@ chrome-user-data
 *.swp
 *.swo
 .env
-config.json
-recycler-backend
+recyclr-backend
