@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/vnev/recyclr-backend/db"
@@ -110,13 +112,46 @@ func UpdateListing(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params := mux.Vars(r)
-	_, err := strconv.Atoi(params["id"])
-
+	listingID, err := strconv.Atoi(params["id"])
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 	}
 
-	// _ := "UPDATE listings SET "
+	var values []interface{}
+	j := 1
+	sqlStatement := "UPDATE listings SET "
+
+	structIterator := reflect.ValueOf(listing)
+	for i := 0; i < structIterator.NumField(); i++ {
+		field := structIterator.Type().Field(i).Name
+		val := structIterator.Field(i).Interface()
+
+		if !reflect.DeepEqual(val, reflect.Zero(structIterator.Field(i).Type()).Interface()) {
+			sqlStatement += strings.ToLower(field) + "=$" + strconv.Itoa(j) + ", "
+			j++
+			values = append(values, val)
+		}
+	}
+
+	sqlStatement = sqlStatement[:len(sqlStatement)-2]
+	sqlStatement = sqlStatement + " WHERE listing_id" + "=$" + strconv.Itoa(j)
+	values = append(values, listingID)
+	row, err := db.DBconn.Exec(sqlStatement, values...)
+	affectedCount, err := row.RowsAffected()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+
+	resMap := make(map[string]string)
+	resMap["message"] = "Success"
+	resMap["rows affected"] = strconv.FormatInt(affectedCount, 10)
+	res, err := json.Marshal(resMap)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
 }
 
 // DeleteListing : function to delete a listing from the database

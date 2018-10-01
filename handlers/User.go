@@ -112,20 +112,21 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("executing SQL: \n\t%s\n", sqlStatement)
 	fmt.Printf("$1 is %s and $2 is %d\n", values[0], values[1])
 	row, err := db.DBconn.Exec(sqlStatement, values...) //.Scan(&user.ID, &user.Name)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
 
 	count, err := row.RowsAffected()
-
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), 500)
 	}
 
 	resMap := make(map[string]string)
 	resMap["message"] = "Success"
 	resMap["rows affected"] = strconv.FormatInt(count, 10)
 	res, err := json.Marshal(resMap)
-
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), 500)
 	}
 
 	w.WriteHeader(http.StatusOK)
