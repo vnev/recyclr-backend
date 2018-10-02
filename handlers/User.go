@@ -15,6 +15,11 @@ import (
 	"github.com/vnev/recyclr-backend/db"
 )
 
+const (
+	HTTP_BAD_REQUEST    = 400
+	HTTP_INTERNAL_ERROR = 500
+)
+
 // User : basic user schema
 type User struct {
 	ID        int    `json:"user_id"`
@@ -27,11 +32,6 @@ type User struct {
 	Password  string `json:"passwd"`
 }
 
-// JWTToken : structure to hold JWT token
-type JWTToken struct {
-	Token string `json:"token"`
-}
-
 // GetUser : function to return a user from the database
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	// this returns a blank password field but it looks jank anyway
@@ -42,7 +42,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r) // Get route params
 	userID, err := strconv.Atoi(params["id"])
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
 	}
 
 	//fmt.Printf("id route param is %d\n", userID)
@@ -51,7 +51,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, err.Error(), 500)
+			http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
 			return
 		}
 		panic(err)
@@ -65,6 +65,10 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
+	if user.ID == 0 {
+		http.Error(w, "No user ID found", HTTP_BAD_REQUEST)
+	}
+
 	//fmt.Printf("read from r: addres is %s, email is %s, name is %s, pass is %s", user.Address, user.Email, user.Name, user.Password)
 	sqlStatement := `
 	INSERT INTO users (address, email, user_name, is_company, passwd)
@@ -76,7 +80,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		panic(err)
 	}
-	fmt.Println("New user created with ID:", id)
+	// fmt.Println("New user created with ID:", id)
 	json.NewEncoder(w).Encode(user)
 }
 
@@ -84,12 +88,15 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var user User
-	json.NewDecoder(r.Body).Decode(&user)
+	_ = json.NewDecoder(r.Body).Decode(&user)
+	if user.ID == 0 {
+		http.Error(w, "No user ID found", HTTP_BAD_REQUEST)
+	}
 
 	params := mux.Vars(r) // Get route params
 	userID, err := strconv.Atoi(params["id"])
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
 	}
 
 	var values []interface{}
@@ -106,7 +113,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		// Check if the field is zero-valued, meaning it won't be updated
 		//fmt.Printf("VAL IS %v and TYPE IS %v and ZERO OF TYPE IS %v\n", val, structIterator.Field(i).Type(), reflect.Zero(structIterator.Field(i).Type()).Interface())
 		if !reflect.DeepEqual(val, reflect.Zero(structIterator.Field(i).Type()).Interface()) {
-			fmt.Printf("%v is non-zero, adding to update\n", field)
+			// fmt.Printf("%v is non-zero, adding to update\n", field)
 			sqlStatement = sqlStatement + strings.ToLower(field) + "=$" + strconv.Itoa(j) + ", "
 			j++
 			values = append(values, val)
@@ -116,16 +123,16 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	sqlStatement = sqlStatement[:len(sqlStatement)-2]
 	sqlStatement = sqlStatement + " WHERE user_id" + "=$" + strconv.Itoa(j)
 	values = append(values, userID)
-	fmt.Printf("executing SQL: \n\t%s\n", sqlStatement)
-	fmt.Printf("$1 is %s and $2 is %d\n", values[0], values[1])
+	// fmt.Printf("executing SQL: \n\t%s\n", sqlStatement)
+	// fmt.Printf("$1 is %s and $2 is %d\n", values[0], values[1])
 	row, err := db.DBconn.Exec(sqlStatement, values...) //.Scan(&user.ID, &user.Name)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
 	}
 
 	count, err := row.RowsAffected()
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
 	}
 
 	resMap := make(map[string]string)
@@ -133,7 +140,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	resMap["rows affected"] = strconv.FormatInt(count, 10)
 	res, err := json.Marshal(resMap)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -145,23 +152,59 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
+	if user.ID == 0 {
+		http.Error(w, "No user ID found", HTTP_BAD_REQUEST)
+	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"iss":  "recyclr.io",
+		"iss":  "recyclr.xyz",
 		"exp":  time.Now().Add(time.Hour * 24).Unix(),
 		"name": user.Name,
 	})
+
 	secret := "secret" + strconv.Itoa(user.ID) + user.JoinedOn
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+	}
+
+	sqlStatement := "UPDATE users SET token=$1 WHERE user_id=$2"
+	_, err = db.DBconn.Exec(sqlStatement, tokenString, user.ID)
+	if err != nil {
+		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
 	}
 
 	resMap := make(map[string]string)
 	resMap["message"] = "Success"
 	resMap["token"] = tokenString
+
 	res, err := json.Marshal(resMap)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
+}
+
+func LogoutUser(w http.ResponseWriter, r *http.Request) {
+	var user User
+	_ = json.NewDecoder(r.Body).Decode(&user)
+	if user.ID == 0 {
+		http.Error(w, "No user ID found", HTTP_BAD_REQUEST)
+	}
+
+	sqlStatement := "UPDATE users SET token='0' WHERE user_id=$1"
+	_, err := db.DBconn.Exec(sqlStatement, user.ID)
+	if err != nil {
+		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+	}
+
+	resMap := make(map[string]string)
+	resMap["message"] = "Success"
+	res, err := json.Marshal(resMap)
+	if err != nil {
+		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
 	}
 
 	w.WriteHeader(http.StatusOK)

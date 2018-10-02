@@ -25,7 +25,7 @@ func main() {
 	router.HandleFunc("/listings", h.GetListings).Methods("GET")
 	router.HandleFunc("/listing/{id}", h.GetListing).Methods("GET")
 	router.HandleFunc("/listing", h.CreateListing).Methods("POST")
-	// router.handleFunc("/listing/update", h.UpdateListing).Methods("POST")
+	router.handleFunc("/listing/update", h.UpdateListing).Methods("POST")
 
 	db.ConnectToDB()
 	defer db.DBconn.Close()

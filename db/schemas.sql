@@ -10,7 +10,8 @@ CREATE TABLE Users (
 	is_company 		BOOLEAN NOT NULL,
 	rating 			REAL NOT NULL DEFAULT 0,
 	joined_on 		TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_DATE,
-	passwd 			TEXT NOT NULL
+	passwd 			TEXT NOT NULL,
+	token			TEXT NOT NULL DEFAULT '0'
 );
 
 CREATE TABLE Listings (

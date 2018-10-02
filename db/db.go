@@ -56,6 +56,6 @@ func ConnectToDB() {
 	}
 	fmt.Printf("Returned row is id: %d, age: %d, firstName: %s, lastName: %s, email: %s\n", id, age, firstName, lastName, email)*/
 
-	fmt.Println("Successfully connected!")
+	fmt.Println("Successfully connected to database!")
 	//return db
 }
