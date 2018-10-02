@@ -8,7 +8,9 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/vnev/recyclr-backend/db"
 )
@@ -23,6 +25,11 @@ type User struct {
 	Rating    int    `json:"rating"`
 	JoinedOn  string `json:"joined_on"`
 	Password  string `json:"passwd"`
+}
+
+// JWTToken : structure to hold JWT token
+type JWTToken struct {
+	Token string `json:"token"`
 }
 
 // GetUser : function to return a user from the database
@@ -132,6 +139,33 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(res)
 	//json.NewEncoder(w).Encode({"status": "200", "message": "success"})
+}
+
+// AuthenticateUser : generate JWT for user and return
+func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
+	var user User
+	_ = json.NewDecoder(r.Body).Decode(&user)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"iss":  "recyclr.io",
+		"exp":  time.Now().Add(time.Hour * 24).Unix(),
+		"name": user.Name,
+	})
+	secret := "secret" + strconv.Itoa(user.ID) + user.JoinedOn
+	tokenString, err := token.SignedString([]byte(secret))
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+
+	resMap := make(map[string]string)
+	resMap["message"] = "Success"
+	resMap["token"] = tokenString
+	res, err := json.Marshal(resMap)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
 }
 
 // DeleteUser : function to delete a user from the database
