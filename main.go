@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -25,17 +24,12 @@ func main() {
 	router.HandleFunc("/listings", h.GetListings).Methods("GET")
 	router.HandleFunc("/listing/{id}", h.GetListing).Methods("GET")
 	router.HandleFunc("/listing", h.CreateListing).Methods("POST")
-	router.handleFunc("/listing/update", h.UpdateListing).Methods("POST")
+	router.HandleFunc("/listing/update", h.UpdateListing).Methods("POST")
 
 	db.ConnectToDB()
 	defer db.DBconn.Close()
 
 	handler := cors.Default().Handler(router)
 
-	// try manual allowed headers to see if this shite works
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-	log.Fatal(http.ListenAndServe(":"+port, handler))
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }
