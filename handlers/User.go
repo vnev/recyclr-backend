@@ -155,7 +155,7 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID := 0
-	sqlStatement = "SELECT id FROM users WHERE email=$1 AND passwd=crypt($2, passwd)"
+	sqlStatement = "SELECT user_id FROM users WHERE email=$1 AND passwd=crypt($2, passwd)"
 	err := db.DBconn.QueryRow(sqlStatement, user.Email, user.Password).Scan(&userID)
 	if err != nil {
 		http.Error(w, "No user found with that email/password", http.StatusBadRequest)
