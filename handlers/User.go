@@ -60,9 +60,6 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
-	if user.ID == 0 {
-		http.Error(w, "No user ID found", http.StatusBadRequest)
-	}
 
 	//fmt.Printf("read from r: addres is %s, email is %s, name is %s, pass is %s", user.Address, user.Email, user.Name, user.Password)
 	sqlStatement := `
@@ -151,13 +148,24 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "No user ID found", http.StatusBadRequest)
 	}
 
-	sqlStatement := "SELECT * FROM users WHERE email=$1"
-	row := db.DBconn.QueryRow(sqlStatement, user.Email)
+	sqlStatement := "SELECT email FROM users WHERE email=$1"
+	email := ""
+	_ = db.DBconn.QueryRow(sqlStatement, user.Email, user.ID).Scan(&email)
+	if email == "" {
+		http.Error(w, "No user found", http.StatusBadRequest)
+		return
+	}
+
+	sqlStatement = "SELECT email FROM users WHERE email=$1 AND passwd=crypt($2, passwd)"
+	err := db.DBconn.QueryRow(sqlStatement, user.Email, user.Password).Scan(&email)
+	if err != nil {
+		http.Error(w, "No user found with email", http.StatusBadRequest)
+		return
+	}
 	// if err != nil {
 	// 	http.Error(w, err.Error(), HTTPInternalError)
 	// }
 
-	fmt.Println(row)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"iss":  "recyclr.xyz",
 		"exp":  time.Now().Add(time.Hour * 24).Unix(),
@@ -202,6 +210,9 @@ func LogoutUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+
+	resMap := make(map[string]string)
+	resMap["message"] = "Success"
 	res, err := json.Marshal(resMap)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
