@@ -80,6 +80,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 // UpdateUser : function to update a user in the database
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
 	if user.ID == 0 {
@@ -92,6 +93,61 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
+	authHeader := r.Header.Get("Authorization")
+	if authHeader != "" {
+		bearer := strings.Split(authHeader, " ")
+		if len(bearer) == 2 {
+			token, err := jwt.Parse(bearer[1], func(token *jwt.Token) (interface{}, error) {
+				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+					return nil, fmt.Errorf("Error")
+				}
+				return []byte("secret"), nil
+			})
+			if err != nil {
+				json.NewEncoder(w).Encode(err.Error())
+				return
+			}
+			if token.Valid {
+				// do nothing I guess?
+				fmt.Println("should be valid, continuing...")
+				token := ""
+				sqlStatement := "SELECT token FROM users WHERE user_id=$1"
+				err = db.DBconn.QueryRow(sqlStatement, userID).Scan(&token)
+
+				if bearer[1] != token {
+					// trying to modify other user, reject this
+					http.Error(w, "Trying to modify another user", http.StatusInternalServerError)
+					return
+				}
+			} else {
+				resMap := make(map[string]string)
+				resMap["message"] = "Failed"
+
+				res, err := json.Marshal(resMap)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+				}
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write(res)
+				return
+			}
+		} else {
+			http.Error(w, "Invalid authorization header", http.StatusBadRequest)
+			return
+		}
+	} else {
+		resMap := make(map[string]string)
+		resMap["message"] = "Failed"
+
+		res, err := json.Marshal(resMap)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(res)
+		return
+	}
+
 	var values []interface{}
 	j := 1
 	sqlStatement := "UPDATE users SET "
@@ -101,6 +157,21 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < structIterator.NumField(); i++ {
 		//fmt.Printf("field: %+v, value: %+v\n", structIterator.Type().Field(i).Name, structIterator.Field(i).Interface())
 		field := structIterator.Type().Field(i).Name
+		fmt.Printf("Field is %s\n", field)
+		if field != "Address" {
+			fmt.Printf("not address\n")
+			if field != "Email" {
+				fmt.Printf("not email\n")
+				if field != "Name" {
+					fmt.Printf("not name\n")
+					if field != "Password" {
+						fmt.Printf("not passwd\n")
+						continue
+					}
+				}
+			}
+		}
+
 		val := structIterator.Field(i).Interface()
 
 		// Check if the field is zero-valued, meaning it won't be updated
@@ -116,7 +187,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	sqlStatement = sqlStatement[:len(sqlStatement)-2]
 	sqlStatement = sqlStatement + " WHERE user_id" + "=$" + strconv.Itoa(j)
 	values = append(values, userID)
-	// fmt.Printf("executing SQL: \n\t%s\n", sqlStatement)
+	fmt.Printf("executing SQL: \n\t%s\n", sqlStatement)
 	// fmt.Printf("$1 is %s and $2 is %d\n", values[0], values[1])
 	row, err := db.DBconn.Exec(sqlStatement, values...) //.Scan(&user.ID, &user.Name)
 	if err != nil {
