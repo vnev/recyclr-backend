@@ -55,7 +55,7 @@ func GetListing(w http.ResponseWriter, r *http.Request) {
 func GetListings(w http.ResponseWriter, r *http.Request) {
 	var listings []Listing
 	w.Header().Set("Content-Type", "application/json")
-	rows, err := db.DBconn.Query("SELECT * FROM listings")
+	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, active FROM listings")
 	if err != nil {
 		//fmt.Println(err)
 		panic(err)
@@ -64,8 +64,8 @@ func GetListings(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var listing Listing
-		err = rows.Scan(&listing.ID, &listing.MaterialType, &listing.MaterialWeight, &listing.UserID, &listing.Active)
-		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
+		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Active)
+		fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
 		listings = append(listings, listing)
 	}
 
