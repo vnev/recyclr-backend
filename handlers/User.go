@@ -174,12 +174,14 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	tokenString, err := token.SignedString([]byte("secret"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	sqlStatement = "UPDATE users SET token=$1 WHERE user_id=$2"
 	_, err = db.DBconn.Exec(sqlStatement, tokenString, user.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	resMap := make(map[string]string)
@@ -189,6 +191,7 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	res, err := json.Marshal(resMap)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
