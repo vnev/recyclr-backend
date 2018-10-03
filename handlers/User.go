@@ -173,8 +173,7 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 		"name": user.Name,
 	})
 
-	secret := "secret" + strconv.Itoa(user.ID) + user.JoinedOn
-	tokenString, err := token.SignedString([]byte(secret))
+	tokenString, err := token.SignedString([]byte("secret"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

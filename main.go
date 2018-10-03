@@ -13,21 +13,21 @@ import (
 func main() {
 	router := mux.NewRouter()
 
-	router.HandleFunc("/user/{id}", h.UpdateUser).Methods("PUT")
-	router.HandleFunc("/user/progress/{id}", h.GetProgress).Methods("GET")
-	router.HandleFunc("/user/{id}", h.GetUser).Methods("GET")
 	router.HandleFunc("/user", h.CreateUser).Methods("POST")
-
-	router.HandleFunc("/companies", h.GetCompanies).Methods("GET")
-	router.HandleFunc("/company/{id}", h.GetUser).Methods("GET") // yes it is supposed to be GetUser not GetCompany
 	router.HandleFunc("/company", h.CreateCompany).Methods("POST")
-
-	router.HandleFunc("/listings", h.GetListings).Methods("GET")
-	router.HandleFunc("/listing/{id}", h.GetListing).Methods("GET")
-	router.HandleFunc("/listing", h.CreateListing).Methods("POST")
-	router.HandleFunc("/listing/update", h.UpdateListing).Methods("POST")
-
 	router.HandleFunc("/signin", h.AuthenticateUser).Methods("POST")
+
+	router.HandleFunc("/user/{id}", h.AuthMiddleware(h.UpdateUser)).Methods("PUT")
+	router.HandleFunc("/user/progress/{id}", h.AuthMiddleware(h.GetProgress)).Methods("GET")
+	router.HandleFunc("/user/{id}", h.AuthMiddleware(h.GetUser)).Methods("GET")
+
+	router.HandleFunc("/companies", h.AuthMiddleware(h.GetCompanies)).Methods("GET")
+	router.HandleFunc("/company/{id}", h.AuthMiddleware(h.GetUser)).Methods("GET") // yes it is supposed to be GetUser not GetCompany
+
+	router.HandleFunc("/listings", h.AuthMiddleware(h.GetListings)).Methods("GET")
+	router.HandleFunc("/listing/{id}", h.AuthMiddleware(h.GetListing)).Methods("GET")
+	router.HandleFunc("/listing", h.AuthMiddleware(h.CreateListing)).Methods("POST")
+	router.HandleFunc("/listing/update", h.AuthMiddleware(h.UpdateListing)).Methods("POST")
 
 	db.ConnectToDB()
 	defer db.DBconn.Close()
