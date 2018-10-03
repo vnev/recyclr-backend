@@ -25,6 +25,7 @@ type User struct {
 	Rating    int    `json:"rating"`
 	JoinedOn  string `json:"joined_on"`
 	Password  string `json:"passwd"`
+	Token     string `json:"token"`
 }
 
 // GetUser : function to return a user from the database
