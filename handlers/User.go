@@ -145,13 +145,10 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
-	if user.ID == 0 {
-		http.Error(w, "No user ID found", http.StatusBadRequest)
-	}
 
 	sqlStatement := "SELECT email FROM users WHERE email=$1"
 	email := ""
-	_ = db.DBconn.QueryRow(sqlStatement, user.Email, user.ID).Scan(&email)
+	_ = db.DBconn.QueryRow(sqlStatement, user.Email).Scan(&email)
 	if email == "" {
 		http.Error(w, "No user found", http.StatusBadRequest)
 		return
