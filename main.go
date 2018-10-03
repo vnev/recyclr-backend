@@ -20,9 +20,13 @@ func main() {
 	router.HandleFunc("/user/{id}", h.AuthMiddleware(h.UpdateUser)).Methods("PUT")
 	router.HandleFunc("/user/progress/{id}", h.AuthMiddleware(h.GetProgress)).Methods("GET")
 	router.HandleFunc("/user/{id}", h.AuthMiddleware(h.GetUser)).Methods("GET")
+	router.HandleFunc("/user/delete", h.AuthMiddleware(h.DeleteUser)).Methods("POST")
+	router.HandleFunc("/user/logout", h.AuthMiddleware(h.LogoutUser)).Methods("POST")
 
 	router.HandleFunc("/companies", h.AuthMiddleware(h.GetCompanies)).Methods("GET")
 	router.HandleFunc("/company/{id}", h.AuthMiddleware(h.GetUser)).Methods("GET") // yes it is supposed to be GetUser not GetCompany
+	router.HandleFunc("/company/delete", h.AuthMiddleware(h.DeleteCompany)).Methods("POST")
+	// router.HandleFunc("/company/logout", h.AuthMiddleware(h.LogoutUser)).Methods("POST")
 
 	router.HandleFunc("/listings", h.AuthMiddleware(h.GetListings)).Methods("GET")
 	router.HandleFunc("/listing/{id}", h.AuthMiddleware(h.GetListing)).Methods("GET")

@@ -9,12 +9,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-// var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options{
-// 	ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
-// 		return mySigningKey, nil
-// 	},
-// 	SigningMethod: jwt.SigningMethodHS256,
-// })
 // AuthMiddleware : authentication middleware
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
