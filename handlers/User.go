@@ -15,9 +15,10 @@ import (
 	"github.com/vnev/recyclr-backend/db"
 )
 
+// Constants for HTTP errors
 const (
-	HTTP_BAD_REQUEST    = 400
-	HTTP_INTERNAL_ERROR = 500
+	HTTPBadRequest    = 400
+	HTTPInternalError = 500
 )
 
 // User : basic user schema
@@ -42,7 +43,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r) // Get route params
 	userID, err := strconv.Atoi(params["id"])
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), HTTPInternalError)
 	}
 
 	//fmt.Printf("id route param is %d\n", userID)
@@ -51,7 +52,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+			http.Error(w, err.Error(), HTTPInternalError)
 			return
 		}
 		panic(err)
@@ -66,7 +67,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
 	if user.ID == 0 {
-		http.Error(w, "No user ID found", HTTP_BAD_REQUEST)
+		http.Error(w, "No user ID found", HTTPBadRequest)
 	}
 
 	//fmt.Printf("read from r: addres is %s, email is %s, name is %s, pass is %s", user.Address, user.Email, user.Name, user.Password)
@@ -90,13 +91,13 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
 	if user.ID == 0 {
-		http.Error(w, "No user ID found", HTTP_BAD_REQUEST)
+		http.Error(w, "No user ID found", HTTPBadRequest)
 	}
 
 	params := mux.Vars(r) // Get route params
 	userID, err := strconv.Atoi(params["id"])
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), HTTPInternalError)
 	}
 
 	var values []interface{}
@@ -127,12 +128,12 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// fmt.Printf("$1 is %s and $2 is %d\n", values[0], values[1])
 	row, err := db.DBconn.Exec(sqlStatement, values...) //.Scan(&user.ID, &user.Name)
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), HTTPInternalError)
 	}
 
 	count, err := row.RowsAffected()
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), HTTPInternalError)
 	}
 
 	resMap := make(map[string]string)
@@ -140,7 +141,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	resMap["rows affected"] = strconv.FormatInt(count, 10)
 	res, err := json.Marshal(resMap)
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), HTTPInternalError)
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -153,9 +154,16 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
 	if user.ID == 0 {
-		http.Error(w, "No user ID found", HTTP_BAD_REQUEST)
+		http.Error(w, "No user ID found", HTTPBadRequest)
 	}
 
+	sqlStatement := "SELECT * FROM users WHERE email=$1"
+	row := db.DBconn.QueryRow(sqlStatement, user.Email)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), HTTPInternalError)
+	// }
+
+	fmt.Println(row)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"iss":  "recyclr.xyz",
 		"exp":  time.Now().Add(time.Hour * 24).Unix(),
@@ -165,13 +173,13 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	secret := "secret" + strconv.Itoa(user.ID) + user.JoinedOn
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), HTTPInternalError)
 	}
 
-	sqlStatement := "UPDATE users SET token=$1 WHERE user_id=$2"
+	sqlStatement = "UPDATE users SET token=$1 WHERE user_id=$2"
 	_, err = db.DBconn.Exec(sqlStatement, tokenString, user.ID)
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), HTTPInternalError)
 	}
 
 	resMap := make(map[string]string)
@@ -180,31 +188,32 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(resMap)
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), HTTPInternalError)
 	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(res)
 }
 
+// LogoutUser : method called when user is being logged out, clears JWT
 func LogoutUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
 	if user.ID == 0 {
-		http.Error(w, "No user ID found", HTTP_BAD_REQUEST)
+		http.Error(w, "No user ID found", HTTPBadRequest)
 	}
 
 	sqlStatement := "UPDATE users SET token='0' WHERE user_id=$1"
 	_, err := db.DBconn.Exec(sqlStatement, user.ID)
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), HTTPInternalError)
 	}
 
 	resMap := make(map[string]string)
 	resMap["message"] = "Success"
 	res, err := json.Marshal(resMap)
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), HTTPInternalError)
 	}
 
 	w.WriteHeader(http.StatusOK)
