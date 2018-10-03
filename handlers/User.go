@@ -201,12 +201,14 @@ func LogoutUser(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&user)
 	if user.ID == 0 {
 		http.Error(w, "No user ID found", http.StatusBadRequest)
+		return
 	}
 
 	sqlStatement := "UPDATE users SET token='0' WHERE user_id=$1"
 	_, err := db.DBconn.Exec(sqlStatement, user.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	resMap := make(map[string]string)
@@ -214,6 +216,7 @@ func LogoutUser(w http.ResponseWriter, r *http.Request) {
 	res, err := json.Marshal(resMap)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -222,16 +225,13 @@ func LogoutUser(w http.ResponseWriter, r *http.Request) {
 
 // DeleteUser : function to delete a user from the database
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
-	/*var users []User // TODO: actually get this to read in users from the DB
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	for index, user := range users {
-		if user.ID == params["id"] {
-			users = append(users[:index], users[index+1:]...)
-			break
-		}
-	}
-	json.NewEncoder(w).Encode(users)*/
+	// var user User
+	// _ = json.NewDecoder(r.Body).Decode(&user)
+	// if user.ID == 0 {
+	// 	http.Error(w, "No user ID found", http.StatusBadRequest)
+	// }
+
+	// sqlStatement :=
 }
 
 // GetProgress : function to get the progress of a user's listings
