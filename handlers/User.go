@@ -221,14 +221,17 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	email := ""
 	_ = db.DBconn.QueryRow(sqlStatement, user.Email).Scan(&email)
 	if email == "" {
-		http.Error(w, "No user found", http.StatusBadRequest)
+		http.Error(w, "No user found with email "+user.Email, http.StatusBadRequest)
 		return
 	}
 
 	userID := 0
-	sqlStatement = "SELECT user_id FROM users WHERE email=$1 AND passwd=crypt($2, passwd)"
-	err := db.DBconn.QueryRow(sqlStatement, user.Email, user.Password).Scan(&userID)
+	userName := ""
+
+	sqlStatement = "SELECT user_id, user_name FROM users WHERE email=$1 AND passwd=crypt($2, passwd)"
+	err := db.DBconn.QueryRow(sqlStatement, user.Email, user.Password).Scan(&userID, &userName)
 	if err != nil {
+		fmt.Printf("Err is %s\n", err.Error())
 		http.Error(w, "No user found with that email/password", http.StatusBadRequest)
 		return
 	}
@@ -258,6 +261,8 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	resMap := make(map[string]string)
 	resMap["message"] = "Success"
 	resMap["token"] = tokenString
+	resMap["user_id"] = strconv.Itoa(userID)
+	resMap["user_name"] = userName
 
 	res, err := json.Marshal(resMap)
 	if err != nil {
