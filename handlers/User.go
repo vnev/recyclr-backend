@@ -178,7 +178,7 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sqlStatement = "UPDATE users SET token=$1 WHERE user_id=$2"
-	_, err = db.DBconn.Exec(sqlStatement, tokenString, user.ID)
+	_, err = db.DBconn.Exec(sqlStatement, tokenString, userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
