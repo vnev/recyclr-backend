@@ -45,6 +45,9 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 					w.WriteHeader(http.StatusBadRequest)
 					w.Write(res)
 				}
+			} else {
+				http.Error(w, "Invalid authorization header", http.StatusBadRequest)
+				return
 			}
 		} else {
 			resMap := make(map[string]string)
