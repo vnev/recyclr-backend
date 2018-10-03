@@ -15,11 +15,6 @@ import (
 	"github.com/vnev/recyclr-backend/db"
 )
 
-const (
-	HTTP_BAD_REQUEST    = 400
-	HTTP_INTERNAL_ERROR = 500
-)
-
 // User : basic user schema
 type User struct {
 	ID        int    `json:"user_id"`
@@ -42,7 +37,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r) // Get route params
 	userID, err := strconv.Atoi(params["id"])
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	//fmt.Printf("id route param is %d\n", userID)
@@ -51,7 +46,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		panic(err)
@@ -66,7 +61,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
 	if user.ID == 0 {
-		http.Error(w, "No user ID found", HTTP_BAD_REQUEST)
+		http.Error(w, "No user ID found", http.StatusBadRequest)
 	}
 
 	//fmt.Printf("read from r: addres is %s, email is %s, name is %s, pass is %s", user.Address, user.Email, user.Name, user.Password)
@@ -90,13 +85,13 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
 	if user.ID == 0 {
-		http.Error(w, "No user ID found", HTTP_BAD_REQUEST)
+		http.Error(w, "No user ID found", http.StatusBadRequest)
 	}
 
 	params := mux.Vars(r) // Get route params
 	userID, err := strconv.Atoi(params["id"])
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	var values []interface{}
@@ -127,12 +122,12 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// fmt.Printf("$1 is %s and $2 is %d\n", values[0], values[1])
 	row, err := db.DBconn.Exec(sqlStatement, values...) //.Scan(&user.ID, &user.Name)
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	count, err := row.RowsAffected()
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	resMap := make(map[string]string)
@@ -140,7 +135,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	resMap["rows affected"] = strconv.FormatInt(count, 10)
 	res, err := json.Marshal(resMap)
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -153,7 +148,7 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
 	if user.ID == 0 {
-		http.Error(w, "No user ID found", HTTP_BAD_REQUEST)
+		http.Error(w, "No user ID found", http.StatusBadRequest)
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -165,13 +160,13 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	secret := "secret" + strconv.Itoa(user.ID) + user.JoinedOn
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	sqlStatement := "UPDATE users SET token=$1 WHERE user_id=$2"
 	_, err = db.DBconn.Exec(sqlStatement, tokenString, user.ID)
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	resMap := make(map[string]string)
@@ -180,31 +175,32 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(resMap)
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(res)
 }
 
+// LogoutUser : This logs a user out
 func LogoutUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
 	if user.ID == 0 {
-		http.Error(w, "No user ID found", HTTP_BAD_REQUEST)
+		http.Error(w, "No user ID found", http.StatusBadRequest)
 	}
 
 	sqlStatement := "UPDATE users SET token='0' WHERE user_id=$1"
 	_, err := db.DBconn.Exec(sqlStatement, user.ID)
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	resMap := make(map[string]string)
 	resMap["message"] = "Success"
 	res, err := json.Marshal(resMap)
 	if err != nil {
-		http.Error(w, err.Error(), HTTP_INTERNAL_ERROR)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -223,4 +219,34 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	json.NewEncoder(w).Encode(users)*/
+}
+
+// GetProgress : function to get the progress of a user's listings
+func GetProgress(w http.ResponseWriter, r *http.Request) {
+	var listings []Listing
+	w.Header().Set("Content-Type", "application/json")
+
+	params := mux.Vars(r) // Get route params
+	userID, err := strconv.Atoi(params["id"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	rows, err := db.DBconn.Query("SELECT * FROM listings WHERE user_id=$1", userID)
+	//err = db.DBconn.QueryRow(sqlStatement, userID).Scan(&user.ID, &user.Address, &user.Email, &user.Name, &user.IsCompany, &user.Rating, &user.JoinedOn)
+
+	defer rows.Close()
+	for rows.Next() {
+		var listing Listing
+		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.UserID, &listing.Active)
+		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
+		listings = append(listings, listing)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	json.NewEncoder(w).Encode(listings)
 }
