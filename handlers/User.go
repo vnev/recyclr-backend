@@ -151,6 +151,13 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "No user ID found", http.StatusBadRequest)
 	}
 
+	sqlStatement := "SELECT * FROM users WHERE email=$1"
+	row := db.DBconn.QueryRow(sqlStatement, user.Email)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), HTTPInternalError)
+	// }
+
+	fmt.Println(row)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"iss":  "recyclr.xyz",
 		"exp":  time.Now().Add(time.Hour * 24).Unix(),
@@ -163,7 +170,7 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	sqlStatement := "UPDATE users SET token=$1 WHERE user_id=$2"
+	sqlStatement = "UPDATE users SET token=$1 WHERE user_id=$2"
 	_, err = db.DBconn.Exec(sqlStatement, tokenString, user.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -195,9 +202,6 @@ func LogoutUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-
-	resMap := make(map[string]string)
-	resMap["message"] = "Success"
 	res, err := json.Marshal(resMap)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
