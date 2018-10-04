@@ -32,6 +32,10 @@ Cory Laker, Geoffrey Myers, Pranav Vasudha, Ryan Walden, Vedant Nevetia, Zachary
         - `passwd`: User/Company password
     - Returns `token` response containing a JSON Web Token
 
+- `/user/{id}/delete`: **ADMIN ROUTE**: Deletes a user from database
+    - Type: GET
+    - GET request accepts a user ID in the URL and deletes that user and all listings, etc. associated with that user's ID if found
+
 #### Protected routes - requires signed in user/company
 - `/user/{id}`: Update user
     - Type: POST
