@@ -85,12 +85,14 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&user)
 	if user.ID == 0 {
 		http.Error(w, "No user ID found", http.StatusBadRequest)
+		return
 	}
 
 	params := mux.Vars(r) // Get route params
 	userID, err := strconv.Atoi(params["id"])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	authHeader := r.Header.Get("Authorization")
@@ -340,6 +342,7 @@ func GetProgress(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.Atoi(params["id"])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, active FROM listings WHERE user_id=$1", userID)
@@ -356,6 +359,7 @@ func GetProgress(w http.ResponseWriter, r *http.Request) {
 	err = rows.Err()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	json.NewEncoder(w).Encode(listings)
