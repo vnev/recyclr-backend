@@ -38,7 +38,7 @@ Cory Laker, Geoffrey Myers, Pranav Vasudha, Ryan Walden, Vedant Nevetia, Zachary
 
 #### Protected routes - requires signed in user/company
 - `/user/{id}`: Update user
-    - Type: POST
+    - Type: PUT
     - Request Body Parameters
         - `email`: New user email
         - `passwd`: New user password
