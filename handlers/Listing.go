@@ -22,6 +22,7 @@ type Listing struct {
 	MaterialWeight float64 `json:"material_weight"`
 	UserID         int     `json:"user_id"`
 	Active         bool    `json:"is_active"`
+	PickupDate     string  `json:"pickup_date"`
 }
 
 // GetListing : function to return a listing from the database
