@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/stripe/stripe-go/charge"
+	"github.com/vnev/recyclr-backend/config"
 
 	"github.com/stripe/stripe-go"
 )
@@ -14,9 +15,9 @@ import (
 
 //StripePayment : function to handle a payment from Stripe
 func StripePayment(w http.ResponseWriter, r *http.Request) {
-	//c := config.LoadConfiguration("config.json")
-	//stripe.Key = c.StripeSecret
-	stripe.Key = "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
+	c := config.LoadConfiguration("config.json")
+	stripe.Key = c.StripeSecret
+	//stripe.Key = "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
 	stripeToken := r.FormValue("token")
 	fmt.Printf("Token is %v\n", stripeToken)
 
