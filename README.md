@@ -36,6 +36,10 @@ Cory Laker, Geoffrey Myers, Pranav Vasudha, Ryan Walden, Vedant Nevetia, Zachary
     - Type: GET
     - GET request accepts a user ID in the URL and deletes that user and all listings, etc. associated with that user's ID if found
 
+- `/user/{id}/ban`: **ADMIN ROUTE**: Bans a user from Recyclr
+    - Type: GET
+    - GET request accepts a user ID in the URL and bans the user from Recyclr. Authentication with the same URL will fail henceforth
+
 #### Protected routes - requires signed in user/company
 - `/user/{id}`: Update user
     - Type: PUT
@@ -92,7 +96,7 @@ Cory Laker, Geoffrey Myers, Pranav Vasudha, Ryan Walden, Vedant Nevetia, Zachary
         - `material_weight`: float: Weight of the material being recycled
         - `user_id`: integer: ID of the user creating the listing
 
-- `/listing/update`: Update an existing listing
+- `/listing/{id}/update`: Update an existing listing
     - Type: POST
     - Request parameters
         - `id`: ID of the listing being updated

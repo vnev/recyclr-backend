@@ -16,6 +16,7 @@ func main() {
 	router.HandleFunc("/signin", h.AuthenticateUser).Methods("POST")
 	router.HandleFunc("/charge", h.StripePayment).Methods("POST")
 	router.HandleFunc("/user/{id}/delete", h.DeleteUser).Methods("GET")
+	router.HandleFunc("/user/{id}/ban", h.BanUser).Methods("GET")
 
 	router.HandleFunc("/user", h.CreateUser).Methods("POST")
 	router.HandleFunc("/user/{id}", h.AuthMiddleware(h.UpdateUser)).Methods("PUT")
@@ -32,7 +33,7 @@ func main() {
 	router.HandleFunc("/listings", h.AuthMiddleware(h.GetListings)).Methods("GET")
 	router.HandleFunc("/listing/{id}", h.AuthMiddleware(h.GetListing)).Methods("GET")
 	router.HandleFunc("/listing", h.AuthMiddleware(h.CreateListing)).Methods("POST")
-	router.HandleFunc("/listing/update", h.AuthMiddleware(h.UpdateListing)).Methods("POST")
+	router.HandleFunc("/listing/{id}/update", h.AuthMiddleware(h.UpdateListing)).Methods("POST")
 
 	db.ConnectToDB()
 	defer db.DBconn.Close()

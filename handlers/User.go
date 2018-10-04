@@ -232,12 +232,39 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	//json.NewEncoder(w).Encode({"status": "200", "message": "success"})
 }
 
+func BanUser(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	userID, err := strconv.Atoi(params["id"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	sqlStatement := "UPDATE users SET banned='t' WHERE user_id=$1"
+	_, err = db.DBconn.Exec(sqlStatement, userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resMap := make(map[string]string)
+	resMap["message"] = "Successfully banned"
+	res, err := json.Marshal(resMap)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
+}
+
 // AuthenticateUser : generate JWT for user and return
 func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
 
-	sqlStatement := "SELECT email FROM users WHERE email=$1"
+	sqlStatement := "SELECT email FROM users WHERE email=$1 AND banned='f'"
 	email := ""
 	_ = db.DBconn.QueryRow(sqlStatement, user.Email).Scan(&email)
 	if email == "" {
