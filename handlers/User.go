@@ -83,12 +83,11 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
-	userID, err := strconv.Atoi(params["id"])
-	if userID == 0 {
+	/*if user.ID == 0 {
 		fmt.Println("Bad request 1")
 		http.Error(w, "No user ID found", http.StatusBadRequest)
 		return
-	}
+	}*/
 
 	params := mux.Vars(r) // Get route params
 	userID, err := strconv.Atoi(params["id"])
