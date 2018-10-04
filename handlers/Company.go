@@ -14,8 +14,9 @@ func GetCompanies(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	rows, err := db.DBconn.Query("SELECT user_id, user_name FROM users where is_company=true")
 	if err != nil {
-		//fmt.Println(err)
-		panic(err)
+		fmt.Println(err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 
 	defer rows.Close()
@@ -28,7 +29,8 @@ func GetCompanies(w http.ResponseWriter, r *http.Request) {
 
 	err = rows.Err()
 	if err != nil {
-		panic(err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 
 	json.NewEncoder(w).Encode(companies)
@@ -47,8 +49,8 @@ func CreateCompany(w http.ResponseWriter, r *http.Request) {
 	id := 0
 	err := db.DBconn.QueryRow(sqlStatement, company.Address, company.Email, company.Name, true, company.Password).Scan(&id)
 	if err != nil {
-		fmt.Println(err)
-		panic(err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 	fmt.Println("New company created with ID:", id)
 	json.NewEncoder(w).Encode(company)

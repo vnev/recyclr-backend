@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/stripe/stripe-go/charge"
@@ -17,6 +18,7 @@ func StripePayment(w http.ResponseWriter, r *http.Request) {
 	//stripe.Key = c.StripeSecret
 	stripe.Key = "sk_test_4eC39HqLyjWDarjtT1zdp7dc"
 	stripeToken := r.FormValue("token")
+	fmt.Printf("Token is %v\n", stripeToken)
 
 	params := &stripe.ChargeParams{
 		Amount:              stripe.Int64(999),
