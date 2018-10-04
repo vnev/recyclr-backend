@@ -8,10 +8,11 @@ import (
 
 //Config : struct for reading config.json file
 type Config struct {
-	DBHost string `json:"dbhost"`
-	DBPass string `json:"dbpass"`
-	DBUser string `json:"dbuser"`
-	DBName string `json:"dbname"`
+	DBHost       string `json:"dbhost"`
+	DBPass       string `json:"dbpass"`
+	DBUser       string `json:"dbuser"`
+	DBName       string `json:"dbname"`
+	StripeSecret string `json:"stripe_secret"`
 }
 
 // LoadConfiguration : loads the info in from the config.json file
