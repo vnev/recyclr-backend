@@ -102,6 +102,7 @@ Cory Laker, Geoffrey Myers, Pranav Vasudha, Ryan Walden, Vedant Nevetia, Zachary
         - `material_weight`: New material weight
         - `material_type`: New material type
         - `is_active`: 'f' if order was purchased, 't' if order is still active
-        - `pickup_date`: Date for pickup in case order was placed
+        - `pickup_date_time`: Date and time for pickup in case order was placed
+
     - Returns a status code indicating success or failure
 
