@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -33,19 +32,16 @@ func GetListing(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r) // Get route params
 	listingID, err := strconv.Atoi(params["id"])
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 
 	//fmt.Printf("id route param is %d\n", userID)
 	sqlStatement := "SELECT title, description, img_hash, material_type, material_weight, active FROM listings WHERE listing_id=$1"
 	err = db.DBconn.QueryRow(sqlStatement, listingID).Scan(&listing.Title, &listing.Description, &listing.ImageHash, &listing.MaterialType, &listing.MaterialWeight, &listing.Active)
-
 	if err != nil {
-		if err == sql.ErrNoRows {
-			http.Error(w, err.Error(), 500)
-			return
-		}
-		panic(err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 
 	json.NewEncoder(w).Encode(&listing)
@@ -57,8 +53,9 @@ func GetListings(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, active FROM listings")
 	if err != nil {
-		//fmt.Println(err)
-		panic(err)
+		fmt.Println(err.Error())
+		http.Error(w, "Check your request parameters", http.StatusBadRequest)
+		return
 	}
 
 	defer rows.Close()
@@ -71,7 +68,9 @@ func GetListings(w http.ResponseWriter, r *http.Request) {
 
 	err = rows.Err()
 	if err != nil {
-		panic(err)
+		fmt.Println(err.Error())
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 
 	json.NewEncoder(w).Encode(listings)
@@ -84,6 +83,7 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&listing)
 	if err != nil {
 		fmt.Println(err.Error())
+		http.Error(w, "Check your request parameters", http.StatusBadRequest)
 		return
 	}
 	fmt.Println("LISTING IS: ", listing)
@@ -96,7 +96,8 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 	err = db.DBconn.QueryRow(sqlStatement, listing.Title, listing.Description, listing.ImageHash, listing.MaterialType, listing.MaterialWeight, listing.UserID).Scan(&id)
 	if err != nil {
 		fmt.Println(err)
-		panic(err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 	fmt.Println("New listing created with ID: ", id)
 	json.NewEncoder(w).Encode(listing)
@@ -108,13 +109,15 @@ func UpdateListing(w http.ResponseWriter, r *http.Request) {
 	var listing Listing
 	if err := json.NewDecoder(r.Body).Decode(&listing); err != nil {
 		fmt.Println(err)
-		panic(err)
+		http.Error(w, "Bad request parameters", http.StatusBadRequest)
+		return
 	}
 
 	params := mux.Vars(r)
 	listingID, err := strconv.Atoi(params["id"])
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	var values []interface{}
@@ -139,7 +142,8 @@ func UpdateListing(w http.ResponseWriter, r *http.Request) {
 	row, err := db.DBconn.Exec(sqlStatement, values...)
 	affectedCount, err := row.RowsAffected()
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	resMap := make(map[string]string)
@@ -147,7 +151,8 @@ func UpdateListing(w http.ResponseWriter, r *http.Request) {
 	resMap["rows affected"] = strconv.FormatInt(affectedCount, 10)
 	res, err := json.Marshal(resMap)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)

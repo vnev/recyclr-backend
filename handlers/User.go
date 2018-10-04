@@ -304,13 +304,31 @@ func LogoutUser(w http.ResponseWriter, r *http.Request) {
 
 // DeleteUser : function to delete a user from the database
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
-	// var user User
-	// _ = json.NewDecoder(r.Body).Decode(&user)
-	// if user.ID == 0 {
-	// 	http.Error(w, "No user ID found", http.StatusBadRequest)
-	// }
+	params := mux.Vars(r)
+	userID, err := strconv.Atoi(params["id"])
+	if err != nil {
+		http.Error(w, "Internal server error. Couldn't parse user ID", http.StatusInternalServerError)
+		return
+	}
 
-	// sqlStatement :=
+	sqlStatement := "DELETE FROM users WHERE user_id=$1"
+	_, err = db.DBconn.Exec(sqlStatement, userID)
+	if err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	resMap := make(map[string]string)
+	resMap["message"] = "Successfully deleted user"
+	res, err := json.Marshal(resMap)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
 }
 
 // GetProgress : function to get the progress of a user's listings

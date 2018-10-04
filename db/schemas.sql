@@ -23,7 +23,7 @@ CREATE TABLE Listings (
 	material_weight REAL NOT NULL,
 	user_id 		INT NOT NULL,
 	active 			BOOLEAN NOT NULL DEFAULT 't',
-	FOREIGN KEY (user_id) REFERENCES Users(user_id)
+	FOREIGN KEY (user_id) REFERENCES Users(user_id) ON UPDATE CASCADE ON DELETE CASADE
 );
 
 CREATE TABLE Orders (
@@ -32,8 +32,8 @@ CREATE TABLE Orders (
 	company_id 	INT NOT NULL,
 	total 		REAL NOT NULL,
 	confirmed 	BOOLEAN NOT NULL DEFAULT 't',
-	FOREIGN KEY (user_id) REFERENCES Users(user_id),
-	FOREIGN KEY (company_id) REFERENCES Users(user_id)
+	FOREIGN KEY (user_id) REFERENCES Users(user_id) ON UPDATE CASCADE ON DELETE CASADE, 
+	FOREIGN KEY (company_id) REFERENCES Users(user_id) ON UPDATE CASCADE ON DELETE CASADE
 );
 
 CREATE TABLE Messages (
@@ -42,6 +42,6 @@ CREATE TABLE Messages (
 	to_user 		INT NOT NULL,
 	from_user 		INT NOT NULL,
 	message_content TEXT NOT NULL,
-	FOREIGN KEY (to_user) REFERENCES Users(user_id),
-	FOREIGN KEY (from_user) REFERENCES Users(user_id)
+	FOREIGN KEY (to_user) REFERENCES Users(user_id) ON UPDATE CASCADE ON DELETE CASADE,
+	FOREIGN KEY (from_user) REFERENCES Users(user_id) ON UPDATE CASCADE ON DELETE CASADE
 );

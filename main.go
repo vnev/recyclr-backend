@@ -15,12 +15,12 @@ func main() {
 
 	router.HandleFunc("/signin", h.AuthenticateUser).Methods("POST")
 	router.HandleFunc("/charge", h.StripePayment).Methods("POST")
+	router.HandleFunc("/user/{id}/delete", h.DeleteUser).Methods("GET")
 
 	router.HandleFunc("/user", h.CreateUser).Methods("POST")
 	router.HandleFunc("/user/{id}", h.AuthMiddleware(h.UpdateUser)).Methods("PUT")
 	router.HandleFunc("/user/progress/{id}", h.AuthMiddleware(h.GetProgress)).Methods("GET")
 	router.HandleFunc("/user/{id}", h.AuthMiddleware(h.GetUser)).Methods("GET")
-	router.HandleFunc("/user/delete", h.AuthMiddleware(h.DeleteUser)).Methods("POST")
 	router.HandleFunc("/user/logout", h.AuthMiddleware(h.LogoutUser)).Methods("POST")
 
 	router.HandleFunc("/company", h.CreateCompany).Methods("POST")
