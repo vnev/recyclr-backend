@@ -190,7 +190,8 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 			if strings.ToLower(field) == "name" {
 				sqlStatement = sqlStatement + "user_name=$" + strconv.Itoa(j) + ", "
 			} else if strings.ToLower(field) == "password" {
-				sqlStatement = sqlStatement + "passwd=$" + strconv.Itoa(j) + ", "
+				// crypt($5, gen_salt('md5'))
+				sqlStatement = sqlStatement + "passwd=crypt($" + strconv.Itoa(j) + ", gen_salt('md5')), "
 			} else {
 				sqlStatement = sqlStatement + strings.ToLower(field) + "=$" + strconv.Itoa(j) + ", "
 			}
