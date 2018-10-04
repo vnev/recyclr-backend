@@ -189,6 +189,8 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 			// fmt.Printf("%v is non-zero, adding to update\n", field)
 			if strings.ToLower(field) == "name" {
 				sqlStatement = sqlStatement + "user_name=$" + strconv.Itoa(j) + ", "
+			} else if strings.ToLower(field) == "password" {
+				sqlStatement = sqlStatement + "passwd=$" + strconv.Itoa(j) + ", "
 			} else {
 				sqlStatement = sqlStatement + strings.ToLower(field) + "=$" + strconv.Itoa(j) + ", "
 			}
