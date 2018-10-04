@@ -85,6 +85,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&user)
 	if user.ID == 0 {
 		http.Error(w, "No user ID found", http.StatusBadRequest)
+		return
 	}
 
 	params := mux.Vars(r) // Get route params
@@ -92,6 +93,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	authHeader := r.Header.Get("Authorization")
@@ -128,6 +130,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					fmt.Println(err.Error())
 					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
 				}
 				w.WriteHeader(http.StatusBadRequest)
 				w.Write(res)
@@ -145,6 +148,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Println(err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(res)
@@ -160,7 +164,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < structIterator.NumField(); i++ {
 		//fmt.Printf("field: %+v, value: %+v\n", structIterator.Type().Field(i).Name, structIterator.Field(i).Interface())
 		field := structIterator.Type().Field(i).Name
-		fmt.Printf("Field is %s\n", field)
+		/*fmt.Printf("Field is %s\n", field)
 		if field != "Address" {
 			fmt.Printf("not address\n")
 			if field != "Email" {
@@ -173,7 +177,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
-		}
+		}*/
 
 		val := structIterator.Field(i).Interface()
 
@@ -194,12 +198,16 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// fmt.Printf("$1 is %s and $2 is %d\n", values[0], values[1])
 	row, err := db.DBconn.Exec(sqlStatement, values...) //.Scan(&user.ID, &user.Name)
 	if err != nil {
+		fmt.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	count, err := row.RowsAffected()
 	if err != nil {
+		fmt.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	resMap := make(map[string]string)
@@ -207,7 +215,9 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	resMap["rows affected"] = strconv.FormatInt(count, 10)
 	res, err := json.Marshal(resMap)
 	if err != nil {
+		fmt.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
