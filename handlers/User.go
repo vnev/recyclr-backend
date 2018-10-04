@@ -187,7 +187,12 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		//fmt.Printf("VAL IS %v and TYPE IS %v and ZERO OF TYPE IS %v\n", val, structIterator.Field(i).Type(), reflect.Zero(structIterator.Field(i).Type()).Interface())
 		if !reflect.DeepEqual(val, reflect.Zero(structIterator.Field(i).Type()).Interface()) {
 			// fmt.Printf("%v is non-zero, adding to update\n", field)
-			sqlStatement = sqlStatement + strings.ToLower(field) + "=$" + strconv.Itoa(j) + ", "
+			if strings.ToLower(field) == "name" {
+				sqlStatement = sqlStatement + "user_name=$" + strconv.Itoa(j) + ", "
+			} else {
+				sqlStatement = sqlStatement + strings.ToLower(field) + "=$" + strconv.Itoa(j) + ", "
+			}
+
 			j++
 			values = append(values, val)
 		}
