@@ -84,7 +84,6 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
 	if user.ID == 0 {
-		fmt.Println(err.Error())
 		http.Error(w, "No user ID found", http.StatusBadRequest)
 	}
 
