@@ -3,6 +3,7 @@ image: golang:latest
 
 variables:
   # Please edit to your GitLab project
+  GOPATH: /home/zach/work
   REPO_NAME: github.com/vnev/recyclr-backend
 
 # The problem is that to be able to use go get, one needs to put
