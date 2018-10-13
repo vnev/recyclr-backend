@@ -1,0 +1,23 @@
+
+image: golang:latest
+
+variables:
+  # Please edit to your GitLab project
+  REPO_NAME: github.com/vnev/recyclr-backend
+
+# The problem is that to be able to use go get, one needs to put
+# the repository in the $GOPATH. So for example if your gitlab domain
+# is gitlab.com, and that your repository is namespace/project, and
+# the default GOPATH being /go, then you'd need to have your
+# repository in /go/src/gitlab.com/namespace/project
+# Thus, making a symbolic link corrects this.
+before_script:
+  - echo $GOPATH
+  - cd $GOPATH/src/$REPO_NAME
+
+deploy:
+    script:
+      - git pull
+      - go build
+      - ./recyclr-backend
+
