@@ -1,4 +1,4 @@
-## recyclr backend
+## recyclr-backend
 
 Backend Project for **CS 407 Fall 2018**
 
