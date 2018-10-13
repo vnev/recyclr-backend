@@ -1,6 +1,6 @@
 ## recyclr-backend
 
-Backend Project for **CS407 Fall 2018**
+Backend Repository of Project for **CS407 Fall 2018**
 
 
 ### Members
