@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 )
 
-//Config : struct for reading config.json file
+//Config : struct which holds the info from the config.json file
 type Config struct {
 	DBHost       string `json:"dbhost"`
 	DBPass       string `json:"dbpass"`

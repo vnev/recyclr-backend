@@ -32,6 +32,7 @@ type Listing struct {
 	UserID         int     `json:"user_id"`
 	Active         bool    `json:"is_active"`
 	PickupDateTime string  `json:"pickup_date_time"`
+	Zipcode        int     `json:"zipcode"`
 }
 
 // GetListing : function to return a listing from the database
@@ -47,8 +48,8 @@ func GetListing(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//fmt.Printf("id route param is %d\n", userID)
-	sqlStatement := "SELECT title, description, img_hash, material_type, material_weight, active FROM listings WHERE listing_id=$1"
-	err = db.DBconn.QueryRow(sqlStatement, listingID).Scan(&listing.Title, &listing.Description, &listing.ImageHash, &listing.MaterialType, &listing.MaterialWeight, &listing.Active)
+	sqlStatement := "SELECT title, description, img_hash, material_type, material_weight, zipcode, active FROM listings WHERE listing_id=$1"
+	err = db.DBconn.QueryRow(sqlStatement, listingID).Scan(&listing.Title, &listing.Description, &listing.ImageHash, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode, &listing.Active)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -61,7 +62,7 @@ func GetListing(w http.ResponseWriter, r *http.Request) {
 func GetListings(w http.ResponseWriter, r *http.Request) {
 	var listings []Listing
 	w.Header().Set("Content-Type", "application/json")
-	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, active FROM listings")
+	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, zipcode, active FROM listings")
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, "Check your request parameters", http.StatusBadRequest)
@@ -71,8 +72,8 @@ func GetListings(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var listing Listing
-		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Active)
-		fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
+		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode, &listing.Active)
+		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
 		listings = append(listings, listing)
 	}
 
@@ -159,14 +160,12 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 	userID, _ := strconv.Atoi(r.FormValue("user_id"))
 	listing.UserID = userID
 
-	// fmt.Println("LISTING IS: ", listing)
-	//fmt.Printf("read from r: addres is %s, email is %s, name is %s, pass is %s", user.Address, user.Email, user.Name, user.Password)
 	sqlStatement := `
-	INSERT INTO listings (title, description, img_hash, material_type, material_weight, user_id)
-	VALUES ($1, $2, $3, $4, $5, $6)
+	INSERT INTO listings (title, description, img_hash, material_type, material_weight, user_id, zipcode)
+	VALUES ($1, $2, $3, $4, $5, $6, $7)
 	RETURNING listing_id`
 	id := 0
-	err = db.DBconn.QueryRow(sqlStatement, listing.Title, listing.Description, listing.ImageHash, listing.MaterialType, listing.MaterialWeight, listing.UserID).Scan(&id)
+	err = db.DBconn.QueryRow(sqlStatement, listing.Title, listing.Description, listing.ImageHash, listing.MaterialType, listing.MaterialWeight, listing.UserID, listing.Zipcode).Scan(&id)
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
