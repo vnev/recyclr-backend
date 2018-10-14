@@ -27,6 +27,7 @@ CREATE TABLE Listings (
 	user_id 				INT NOT NULL,
 	active 					BOOLEAN NOT NULL DEFAULT 't',
 	pickup_date_time		TIMESTAMP WITH TIME ZONE,
+	zipcode					INT NOT NULL DEFAULT 47906,
 	FOREIGN KEY (user_id) REFERENCES Users(user_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
@@ -57,4 +58,4 @@ CREATE TABLE Timeslots (
 	start_time		TIME NOT NULL,
 	end_time		TIME NOT NULL,
 	FOREIGN KEY (user_id) REFERENCES Users(user_id) ON UPDATE CASCADE ON DELETE CASCADE
-)
+);

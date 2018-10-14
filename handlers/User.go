@@ -409,3 +409,35 @@ func GetProgress(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(listings)
 }
+
+// GetTransactions : Returns all orders for a company
+func GetTransactions(w http.ResponseWriter, r *http.Request) {
+	var orders []Order
+	w.Header().Set("Content-Type", "application/json")
+
+	params := mux.Vars(r) // Get route params
+	userID, err := strconv.Atoi(params["id"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	rows, err := db.DBconn.Query("SELECT order_id, user_id, company_id, total, confirmed FROM orders WHERE user_id=$1", userID)
+	//err = db.DBconn.QueryRow(sqlStatement, userID).Scan(&user.ID, &user.Address, &user.Email, &user.Name, &user.IsCompany, &user.Rating, &user.JoinedOn)
+
+	defer rows.Close()
+	for rows.Next() {
+		var order Order
+		err = rows.Scan(&order.ID, &order.UserID, &order.CompanyID, &order.Total, &order.Confirmed)
+		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
+		orders = append(orders, order)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(orders)
+}
