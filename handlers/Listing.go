@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -8,7 +10,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/satori/go.uuid"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+
 	"github.com/gorilla/mux"
+	c "github.com/vnev/recyclr-backend/config"
 	"github.com/vnev/recyclr-backend/db"
 )
 
@@ -80,16 +89,77 @@ func GetListings(w http.ResponseWriter, r *http.Request) {
 
 // CreateListing : function to create a new listing in the database
 func CreateListing(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	var listing Listing
-	err := json.NewDecoder(r.Body).Decode(&listing)
+
+	awsCreds, err := c.LoadAWSConfiguration("config.json")
 	if err != nil {
-		fmt.Println(err.Error())
-		http.Error(w, "Check your request parameters", http.StatusBadRequest)
+		fmt.Println(err)
+		http.Error(w, "Error fetching aws credentials", http.StatusInternalServerError)
 		return
 	}
-	//fmt.Println("LISTING IS: ", listing)
-	//fmt.Printf("read from r: addres is %s, email is %s, name is %s, pass is %s", user.Address, user.Email, user.Name, user.Password)
+
+	err = r.ParseForm()
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Error parsing form", http.StatusInternalServerError)
+		return
+	}
+
+	cfg := aws.NewConfig().WithRegion("us-east-2").WithCredentials(awsCreds)
+	if err != nil {
+		fmt.Println("failed")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	svc := s3.New(session.New(), cfg)
+
+	file, h, err := r.FormFile("image")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	uniqueString := h.Filename + uuid.Must(uuid.NewV4()).String()
+	extensionIndex := strings.LastIndex(h.Filename, ".")
+	if extensionIndex < 0 {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	hash := sha256.New()
+	hash.Write([]byte(uniqueString))
+	sha := hash.Sum(nil)
+	hashString := hex.EncodeToString(sha)
+	hashedFilename := hashString + h.Filename[extensionIndex:]
+	path := "/images/" + hashedFilename
+	fmt.Printf("file path: %s\n", hashString)
+
+	params := &s3.PutObjectInput{
+		Bucket:        aws.String("recyclr"),
+		Key:           aws.String(path),
+		Body:          file,
+		ContentLength: aws.Int64(h.Size),
+		ContentType:   aws.String(h.Header.Get("Content-Type")),
+	}
+
+	_, err = svc.PutObject(params)
+	if err != nil {
+		http.Error(w, "Error uploading image!", http.StatusInternalServerError)
+		fmt.Println(err.Error())
+		return
+	}
+
+	listing.Description = r.FormValue("description")
+	listing.Title = r.FormValue("title")
+	listing.MaterialType = r.FormValue("material_type")
+
+	materialWeight, _ := strconv.ParseFloat(r.FormValue("material_weight"), 64)
+	listing.MaterialWeight = materialWeight
+	listing.ImageHash = hashedFilename
+
+	userID, _ := strconv.Atoi(r.FormValue("user_id"))
+	listing.UserID = userID
+
 	sqlStatement := `
 	INSERT INTO listings (title, description, img_hash, material_type, material_weight, user_id, zipcode)
 	VALUES ($1, $2, $3, $4, $5, $6, $7)
