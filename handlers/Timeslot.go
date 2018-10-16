@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/vnev/recyclr-backend/db"
@@ -104,4 +106,65 @@ func CreateTimeslot(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("New listing created with ID: ", id)
 	json.NewEncoder(w).Encode(timeslot)
+}
+
+// UpdateTimeslot : function to update a timeslot
+func UpdateTimeslot(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var timeslot Timeslot
+	if err := json.NewDecoder(r.Body).Decode(&timeslot); err != nil {
+		fmt.Println(err)
+		http.Error(w, "Bad request parameters", http.StatusBadRequest)
+		return
+	}
+
+	params := mux.Vars(r)
+	timeslotID, err := strconv.Atoi(params["id"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var values []interface{}
+	j := 1
+	sqlStatement := "UPDATE timeslots SET "
+
+	structIterator := reflect.ValueOf(timeslot)
+	for i := 0; i < structIterator.NumField(); i++ {
+		field := structIterator.Type().Field(i).Name
+		val := structIterator.Field(i).Interface()
+
+		if !reflect.DeepEqual(val, reflect.Zero(structIterator.Field(i).Type()).Interface()) {
+			sqlStatement += strings.ToLower(field) + "=$" + strconv.Itoa(j) + ", "
+			j++
+			values = append(values, val)
+		}
+	}
+
+	sqlStatement = sqlStatement[:len(sqlStatement)-2]
+	sqlStatement = sqlStatement + " WHERE time_id" + "=$" + strconv.Itoa(j)
+	values = append(values, timeslotID)
+	row, err := db.DBconn.Exec(sqlStatement, values...)
+	affectedCount, err := row.RowsAffected()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resMap := make(map[string]string)
+	resMap["message"] = "Success"
+	resMap["rows affected"] = strconv.FormatInt(affectedCount, 10)
+	res, err := json.Marshal(resMap)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
+}
+
+// DeleteTimeslot : function to delete a timeslot from the database
+func DeleteTimeslot(w http.ResponseWriter, r *http.Request) {
+
 }

@@ -163,14 +163,5 @@ func UpdateListing(w http.ResponseWriter, r *http.Request) {
 
 // DeleteListing : function to delete a listing from the database
 func DeleteListing(w http.ResponseWriter, r *http.Request) {
-	/*var users []User // TODO: actually get this to read in users from the DB
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	for index, user := range users {
-		if user.ID == params["id"] {
-			users = append(users[:index], users[index+1:]...)
-			break
-		}
-	}
-	json.NewEncoder(w).Encode(users)*/
+
 }
