@@ -13,6 +13,8 @@ import (
 func main() {
 	router := mux.NewRouter()
 
+	//router.HandleFunc("/webhook", h.Webhook).Methods("POST")
+
 	router.HandleFunc("/signin", h.AuthenticateUser).Methods("POST")
 	router.HandleFunc("/charge", h.StripePayment).Methods("POST")
 	router.HandleFunc("/user/{id}/delete", h.DeleteUser).Methods("GET")
