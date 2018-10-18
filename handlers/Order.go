@@ -12,7 +12,7 @@ import (
 	"github.com/vnev/recyclr-backend/db"
 )
 
-//Order : struct to hold order information
+//Order struct contains the order DB schema in a struct format
 type Order struct {
 	ID        int  `json:"order_id"`
 	UserID    int  `json:"user_id"`
@@ -21,7 +21,7 @@ type Order struct {
 	Confirmed bool `json:"confirmed"`
 }
 
-// GetOrder : function to return an order from the database
+// GetOrder returns an order from the database in JSON format, given the specific order_id as a URL parameter.
 func GetOrder(w http.ResponseWriter, r *http.Request) {
 	var order Order
 	w.Header().Set("Content-Type", "application/json")
@@ -44,7 +44,8 @@ func GetOrder(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&order)
 }
 
-// GetOrders : function to return all orders from the database for a specific user
+// GetOrders returns all orders from the database in JSON format for a specific given user,
+// given their user_id as a URL parameter.
 func GetOrders(w http.ResponseWriter, r *http.Request) {
 	var orders []Order
 	w.Header().Set("Content-Type", "application/json")
@@ -81,7 +82,7 @@ func GetOrders(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(orders)
 }
 
-// CreateOrder : function to create a new listing in the database
+// CreateOrder creates a new listing in the database. It expects user_id, company_id, total, and confirmed.
 func CreateOrder(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var order Order
@@ -108,7 +109,7 @@ func CreateOrder(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(order)
 }
 
-// UpdateOrder : function to update an order in the database
+// UpdateOrder updates an order in the database, given its' order_id and other fields requesting to be changed.
 func UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var order Order
@@ -164,7 +165,8 @@ func UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-// DeleteOrder : function to delete a listing from the database
+// DeleteOrder deletes an order from the database given its' order_id. It will only work if
+// the user sending the request has sufficient admin priveliges.
 func DeleteOrder(w http.ResponseWriter, r *http.Request) {
 
 }

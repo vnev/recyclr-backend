@@ -12,7 +12,7 @@ import (
 	"github.com/vnev/recyclr-backend/db"
 )
 
-// Timeslot : struct to hold timeslot information
+// Timeslot struct contains the timeslot schema in a struct format.
 type Timeslot struct {
 	ID        int    `json:"time_id"`
 	UserID    int    `json:"user_id"`
@@ -21,7 +21,8 @@ type Timeslot struct {
 	EndTime   string `json:"end_time"`
 }
 
-// GetTimeslot : function to return a timeslot from the database, probably unneeded
+// GetTimeslot returns a timeslot from the database in JSON format, given the specific time_id as a URL parameter.
+// This probably isn't needed at all.
 func GetTimeslot(w http.ResponseWriter, r *http.Request) {
 	var timeslot Timeslot
 	w.Header().Set("Content-Type", "application/json")
@@ -44,7 +45,7 @@ func GetTimeslot(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&timeslot)
 }
 
-// GetTimeslots : function to return all timeslots for a company/user from the database
+// GetTimeslots returns all timeslots from the database for a specific user or company in JSON format.
 func GetTimeslots(w http.ResponseWriter, r *http.Request) {
 	var timeslots []Timeslot
 	w.Header().Set("Content-Type", "application/json")
@@ -81,7 +82,7 @@ func GetTimeslots(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(timeslots)
 }
 
-// CreateTimeslot : function to create a new listing in the database
+// CreateTimeslot creates a new timeslot in the database. It expects user_id, day, start_time, and end_time.
 func CreateTimeslot(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var timeslot Timeslot
@@ -108,7 +109,7 @@ func CreateTimeslot(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(timeslot)
 }
 
-// UpdateTimeslot : function to update a timeslot
+// UpdateTimeslot updates a timeslot in the database, given its' time_id and other fields requesting to be changed.
 func UpdateTimeslot(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var timeslot Timeslot
@@ -164,7 +165,8 @@ func UpdateTimeslot(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-// DeleteTimeslot : function to delete a timeslot from the database
+// DeleteTimeslot deletes a timeslot from the database given its' time_id. It will only work if
+// the user sending the request has sufficient admin priveliges.
 func DeleteTimeslot(w http.ResponseWriter, r *http.Request) {
 
 }

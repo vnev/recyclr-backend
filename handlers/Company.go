@@ -8,7 +8,8 @@ import (
 	"github.com/vnev/recyclr-backend/db"
 )
 
-// GetCompanies : function to return all companies from the database
+// GetCompanies returns all companies from the database in the JSON format. It does not require
+// any parameters.
 func GetCompanies(w http.ResponseWriter, r *http.Request) {
 	var companies []User
 	w.Header().Set("Content-Type", "application/json")
@@ -36,7 +37,8 @@ func GetCompanies(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(companies)
 }
 
-// CreateCompany : function to create a new company in the database
+// CreateCompany creates a new company in the database, and returns the newly created company in JSON format.
+// In the request body, it expects an address, email, user_name, is_company, and password.
 func CreateCompany(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var company User
@@ -56,26 +58,14 @@ func CreateCompany(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(company)
 }
 
-// UpdateCompany : function to update a company in the database
+// UpdateCompany updates a company in the database, and will return the number of rows updated. It expects
+// the user_id, along with all the fields that are requesting to be changed with their new information.
 func UpdateCompany(w http.ResponseWriter, r *http.Request) {
-	/*var users []User // TODO: actually get this to read in users from the DB
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	for index, user := range users {
-		if user.ID == params["id"] {
-			users = append(users[:index], users[index+1:]...)
-			var newUser User
-			_ = json.NewDecoder(r.Body).Decode(&newUser)
-			newUser.ID = params["id"]
-			users = append(users, newUser)
-			json.NewEncoder(w).Encode(newUser)
-			return
-		}
-	}
-	json.NewEncoder(w).Encode(users)*/
+
 }
 
-// DeleteCompany : function to delete a company from the database
+// DeleteCompany deletes a company from the database. It expects the user_id, and will only work if
+// the user sending the request has sufficient admin priveliges.
 func DeleteCompany(w http.ResponseWriter, r *http.Request) {
 	/*var users []User // TODO: actually get this to read in users from the DB
 	w.Header().Set("Content-Type", "application/json")

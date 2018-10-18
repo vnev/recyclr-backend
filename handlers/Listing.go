@@ -21,7 +21,7 @@ import (
 	"github.com/vnev/recyclr-backend/db"
 )
 
-// Listing : basic listing schema
+// Listing struct contains the listing schema in a struct format.
 type Listing struct {
 	ID             int     `json:"listing_id"`
 	Title          string  `json:"title"`
@@ -35,7 +35,7 @@ type Listing struct {
 	Zipcode        int     `json:"zipcode"`
 }
 
-// GetListing : function to return a listing from the database
+// GetListing returns a listing from the database in JSON format, given the specific listing_id as a URL parameter.
 func GetListing(w http.ResponseWriter, r *http.Request) {
 	var listing Listing
 	w.Header().Set("Content-Type", "application/json")
@@ -58,7 +58,7 @@ func GetListing(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&listing)
 }
 
-// GetListings : function to return all listings from the database
+// GetListings returns all listings from the database in JSON format.
 func GetListings(w http.ResponseWriter, r *http.Request) {
 	var listings []Listing
 	w.Header().Set("Content-Type", "application/json")
@@ -87,7 +87,8 @@ func GetListings(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(listings)
 }
 
-// CreateListing : function to create a new listing in the database
+// CreateListing creates a new listing in the database. It expects title, description, img_hash,
+// material_type, material_weight, user_id, and zipcode. It also reads the AWS configuration to store images.
 func CreateListing(w http.ResponseWriter, r *http.Request) {
 	var listing Listing
 
@@ -160,10 +161,9 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 	userID, _ := strconv.Atoi(r.FormValue("user_id"))
 	listing.UserID = userID
 
-	sqlStatement := `
-	INSERT INTO listings (title, description, img_hash, material_type, material_weight, user_id, zipcode)
-	VALUES ($1, $2, $3, $4, $5, $6, $7)
-	RETURNING listing_id`
+	sqlStatement := `INSERT INTO listings (title, description, img_hash, material_type, material_weight, user_id, zipcode)
+					VALUES ($1, $2, $3, $4, $5, $6, $7)
+					RETURNING listing_id`
 	id := 0
 	err = db.DBconn.QueryRow(sqlStatement, listing.Title, listing.Description, listing.ImageHash, listing.MaterialType, listing.MaterialWeight, listing.UserID, listing.Zipcode).Scan(&id)
 	if err != nil {
@@ -175,7 +175,7 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(listing)
 }
 
-// UpdateListing : function to update a listing in the database
+// UpdateListing updates a listing in the database, given its' listing_id and other fields requesting to be changed.
 func UpdateListing(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var listing Listing
@@ -231,7 +231,8 @@ func UpdateListing(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-// DeleteListing : function to delete a listing from the database
+// DeleteListing deletes a listing from the database given its' listing_id. It will only work if
+// the user sending the request has sufficient admin priveliges.
 func DeleteListing(w http.ResponseWriter, r *http.Request) {
 
 }

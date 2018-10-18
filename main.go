@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+	// The main router that handles all of our http routes
 	router := mux.NewRouter()
 
 	router.HandleFunc("/signin", h.AuthenticateUser).Methods("POST")

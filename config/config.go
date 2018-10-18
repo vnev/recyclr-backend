@@ -1,3 +1,4 @@
+// Package config reads our configuration for our database and AWS.
 package config
 
 import (
@@ -8,7 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 )
 
-//Config : struct which holds the info from the config.json file
+// Config is the struct which will hold our various configuration settings such as
+// the database username and password, and our Stripe secret.
 type Config struct {
 	DBHost       string `json:"dbhost"`
 	DBPass       string `json:"dbpass"`
@@ -17,12 +19,13 @@ type Config struct {
 	StripeSecret string `json:"stripe_secret"`
 }
 
+// AWSCredentials is the struct which holds our access information for AWS
 type AWSCredentials struct {
 	AWSAccessKeyID  string `json:"accessKeyId"`
 	SecretAccessKey string `json:"secretAccessKey"`
 }
 
-// LoadConfiguration : loads the info in from the config.json file
+// LoadConfiguration loads the info in from a JSON file and returns the resulting struct.
 func LoadConfiguration(file string) Config {
 	var config Config
 	configFile, err := os.Open(file)
@@ -35,7 +38,7 @@ func LoadConfiguration(file string) Config {
 	return config
 }
 
-// LoadAWSConfiguration : loads AWS Configuration and returns the credentials
+// LoadAWSConfiguration loads AWS Configuration and returns the credentials.
 func LoadAWSConfiguration(file string) (*credentials.Credentials, error) {
 	//var creds credentials.Credentials
 	var awsCreds AWSCredentials

@@ -1,3 +1,4 @@
+// Package db implements the connection to our PostgreSQL server.
 package db
 
 import (
@@ -9,10 +10,10 @@ import (
 	"github.com/vnev/recyclr-backend/config"
 )
 
-// DBconn : the main db connection object
+// DBconn is the main database connection object, used globally.
 var DBconn *sql.DB
 
-// ConnectToDB : function that opens a connection to the database, given a config file name
+// ConnectToDB opens a connection to the database, and keeps it open while the server is running.
 func ConnectToDB() {
 	var err error
 	c := config.LoadConfiguration("config.json")
