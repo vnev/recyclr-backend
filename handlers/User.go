@@ -14,7 +14,7 @@ import (
 	"github.com/vnev/recyclr-backend/db"
 )
 
-// User : basic user schema
+// User struct contains the user schema in a struct format.
 type User struct {
 	ID        int    `json:"user_id"`
 	Address   string `json:"address"`
@@ -27,10 +27,9 @@ type User struct {
 	Token     string `json:"token"`
 }
 
-// GetUser : function to return a user from the database
+// GetUser returns a user from the database in JSON format, given the specific user_id as a URL parameter.
+// TODO: maybe just return a newly defined struct without password field.
 func GetUser(w http.ResponseWriter, r *http.Request) {
-	// this returns a blank password field but it looks jank anyway
-	// TODO: maybe just return a newly defined struct without password field
 	var user User
 	w.Header().Set("Content-Type", "application/json")
 
@@ -53,7 +52,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&user)
 }
 
-// CreateUser : function to create a new user in the database
+// CreateUser creates a new user in the database. It expects address, email, user_name, is_company, and passwd fields.
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var user User
@@ -74,7 +73,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-// UpdateUser : function to update a user in the database
+// UpdateUser updates a user in the database, given its' user_id and other fields requesting to be changed.
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -232,6 +231,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	//json.NewEncoder(w).Encode({"status": "200", "message": "success"})
 }
 
+// BanUser bans a specific user given their user_id as a URL parameter.
 func BanUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	userID, err := strconv.Atoi(params["id"])
@@ -259,7 +259,7 @@ func BanUser(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-// AuthenticateUser : generate JWT for user and return
+// AuthenticateUser generates a JWT for the user and returns it in JSON format.
 func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
@@ -321,7 +321,7 @@ func AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-// LogoutUser : This logs a user out
+// LogoutUser logs a user out, setting their JWT to 0. It expects the user_id to be sent in the request body.
 func LogoutUser(w http.ResponseWriter, r *http.Request) {
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
@@ -349,7 +349,8 @@ func LogoutUser(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-// DeleteUser : function to delete a user from the database
+// DeleteUser deletes a listing from the database given their user_id. It will only work if
+// the user sending the request has sufficient admin priveliges.
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	userID, err := strconv.Atoi(params["id"])
@@ -378,7 +379,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-// GetProgress : function to get the progress of a user's listings
+// GetProgress gets the progress of a user's listings, returning it in JSON format given their user_id as a URL parameter.
 func GetProgress(w http.ResponseWriter, r *http.Request) {
 	var listings []Listing
 	w.Header().Set("Content-Type", "application/json")
@@ -410,7 +411,7 @@ func GetProgress(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(listings)
 }
 
-// GetTransactions : Returns all orders for a company
+// GetTransactions returns all orders for a company in JSON format, given their user_id as a URL parameter.
 func GetTransactions(w http.ResponseWriter, r *http.Request) {
 	var orders []Order
 	w.Header().Set("Content-Type", "application/json")

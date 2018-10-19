@@ -11,9 +11,7 @@ import (
 	"github.com/stripe/stripe-go"
 )
 
-//stripe base URL is https://api.stripe.com
-
-//StripePayment : function to handle a payment from Stripe
+//StripePayment handles a payment from Stripe, given the payment token in a form in the request body.
 func StripePayment(w http.ResponseWriter, r *http.Request) {
 	c := config.LoadConfiguration("config.json")
 	stripe.Key = c.StripeSecret

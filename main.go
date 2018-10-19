@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -11,6 +12,7 @@ import (
 )
 
 func main() {
+	// The main router that handles all of our http routes
 	router := mux.NewRouter()
 
 	router.HandleFunc("/signin", h.AuthenticateUser).Methods("POST")
@@ -45,5 +47,6 @@ func main() {
 
 	handler := cors.Default().Handler(router)
 
+	fmt.Println("Listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", handler))
 }
