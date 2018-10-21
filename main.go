@@ -42,6 +42,9 @@ func main() {
 	router.HandleFunc("/timeslots/{id}", h.AuthMiddleware(h.GetTimeslots)).Methods("GET")
 	router.HandleFunc("/timeslot", h.AuthMiddleware(h.CreateTimeslot)).Methods("POST")
 
+	router.HandleFunc("/invoice/create", h.AuthMiddleware(h.CreateInvoice)).Methods("POST")
+	router.HandleFunc("/invoice/{invoice_id}", h.AuthMiddleware(h.GetInvoice)).Methods("GET")
+
 	db.ConnectToDB()
 	defer db.DBconn.Close()
 
