@@ -75,7 +75,7 @@ func GetInvoice(w http.ResponseWriter, r *http.Request) {
 	resMap["message"] = "Success"
 	resMap["invoice_status"] = strconv.FormatBool(invoice.Status)
 	resMap["for_listing"] = strconv.Itoa(forListingID)
-	resMap["invoice_id"] = strconv.Itoa(invoice.ID)
+	resMap["invoice_id"] = strconv.Itoa(invoiceID)
 
 	res, err := json.Marshal(resMap)
 	if err != nil {
