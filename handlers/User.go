@@ -63,12 +63,12 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	//fmt.Printf("read from r: addres is %s, email is %s, name is %s, pass is %s", user.Address, user.Email, user.Name, user.Password)
 	sqlStatement := `
 	INSERT INTO users (address, city, state, email, user_name, is_company, passwd)
-	VALUES ($1, $2, $3, $4, $5, $6, crypt($5, gen_salt('md5')))
+	VALUES ($1, $2, $3, $4, $5, $6, crypt($7, gen_salt('md5')))
 	RETURNING user_id`
 	id := 0
 	err := db.DBconn.QueryRow(sqlStatement, user.Address, user.City, user.State, user.Email, user.Name, false, user.Password).Scan(&id)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	// fmt.Println("New user created with ID:", id)
