@@ -49,8 +49,8 @@ func GetListing(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//fmt.Printf("id route param is %d\n", userID)
-	sqlStatement := "SELECT title, description, img_hash, material_type, material_weight, zipcode, active FROM listings WHERE listing_id=$1"
-	err = db.DBconn.QueryRow(sqlStatement, listingID).Scan(&listing.Title, &listing.Description, &listing.ImageHash, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode, &listing.Active)
+	sqlStatement := "SELECT title, user_id, description, img_hash, material_type, material_weight, zipcode, active FROM listings WHERE listing_id=$1"
+	err = db.DBconn.QueryRow(sqlStatement, listingID).Scan(&listing.Title, &listing.UserID, &listing.Description, &listing.ImageHash, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode, &listing.Active)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
