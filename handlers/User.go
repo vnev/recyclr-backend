@@ -25,6 +25,8 @@ type User struct {
 	JoinedOn  string `json:"joined_on"`
 	Password  string `json:"passwd"`
 	Token     string `json:"token"`
+	City      string `json:"city"`
+	State     string `json:"state"`
 }
 
 // GetUser returns a user from the database in JSON format, given the specific user_id as a URL parameter.
@@ -41,8 +43,8 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//fmt.Printf("id route param is %d\n", userID)
-	sqlStatement := "SELECT user_id, address, email, user_name, is_company, rating, joined_on FROM users WHERE user_id=$1"
-	err = db.DBconn.QueryRow(sqlStatement, userID).Scan(&user.ID, &user.Address, &user.Email, &user.Name, &user.IsCompany, &user.Rating, &user.JoinedOn)
+	sqlStatement := "SELECT user_id, address, city, state, email, user_name, is_company, rating, joined_on FROM users WHERE user_id=$1"
+	err = db.DBconn.QueryRow(sqlStatement, userID).Scan(&user.ID, &user.Address, &user.City, &user.State, &user.Email, &user.Name, &user.IsCompany, &user.Rating, &user.JoinedOn)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -60,11 +62,11 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	//fmt.Printf("read from r: addres is %s, email is %s, name is %s, pass is %s", user.Address, user.Email, user.Name, user.Password)
 	sqlStatement := `
-	INSERT INTO users (address, email, user_name, is_company, passwd)
-	VALUES ($1, $2, $3, $4, crypt($5, gen_salt('md5')))
+	INSERT INTO users (address, city, state, email, user_name, is_company, passwd)
+	VALUES ($1, $2, $3, $4, $5, $6, crypt($5, gen_salt('md5')))
 	RETURNING user_id`
 	id := 0
-	err := db.DBconn.QueryRow(sqlStatement, user.Address, user.Email, user.Name, false, user.Password).Scan(&id)
+	err := db.DBconn.QueryRow(sqlStatement, user.Address, user.City, user.State, user.Email, user.Name, false, user.Password).Scan(&id)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
