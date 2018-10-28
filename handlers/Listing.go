@@ -72,7 +72,7 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, zipcode FROM listings WHERE active='f' and user_id=$1", userID)
+	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, zipcode, frozen_by FROM listings WHERE active='f' and user_id=$1", userID)
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, "Check your request parameters", http.StatusBadRequest)
@@ -82,7 +82,7 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var listing Listing
-		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode)
+		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode, &listing.FrozenBy)
 		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
 		frozenListings = append(frozenListings, listing)
 	}
