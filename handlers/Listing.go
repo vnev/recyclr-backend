@@ -33,7 +33,7 @@ type Listing struct {
 	UserID         int     `json:"user_id"`
 	Active         bool    `json:"is_active"`
 	PickupDateTime string  `json:"pickup_date_time"`
-	Zipcode        int     `json:"zipcode"`
+	Address        string  `json:"address"`
 	FrozenBy       int     `json:"frozen_by"`
 }
 
@@ -50,8 +50,8 @@ func GetListing(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//fmt.Printf("id route param is %d\n", userID)
-	sqlStatement := "SELECT title, user_id, description, img_hash, material_type, material_weight, zipcode, active, frozen_by FROM listings WHERE listing_id=$1"
-	err = db.DBconn.QueryRow(sqlStatement, listingID).Scan(&listing.Title, &listing.UserID, &listing.Description, &listing.ImageHash, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode, &listing.Active, &listing.FrozenBy)
+	sqlStatement := "SELECT title, user_id, description, img_hash, material_type, material_weight, address, active, frozen_by FROM listings WHERE listing_id=$1"
+	err = db.DBconn.QueryRow(sqlStatement, listingID).Scan(&listing.Title, &listing.UserID, &listing.Description, &listing.ImageHash, &listing.MaterialType, &listing.MaterialWeight, &listing.Address, &listing.Active, &listing.FrozenBy)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -73,7 +73,7 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, zipcode, frozen_by, img_hash FROM listings WHERE active='f' and user_id=$1", userID)
+	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, address, frozen_by, img_hash FROM listings WHERE active='f' and user_id=$1", userID)
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, "Check your request parameters", http.StatusBadRequest)
@@ -83,7 +83,7 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var listing Listing
-		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode, &listing.FrozenBy, &listing.ImageHash)
+		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Address, &listing.FrozenBy, &listing.ImageHash)
 		// TODO: Error check
 		listing.ImageHash = "https://s3.us-east-2.amazonaws.com/recyclr/images/" + listing.ImageHash
 		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
@@ -104,7 +104,7 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 func GetListings(w http.ResponseWriter, r *http.Request) {
 	var listings []Listing
 	w.Header().Set("Content-Type", "application/json")
-	rows, err := db.DBconn.Query("SELECT user_id, listing_id, title, description, material_type, material_weight, zipcode, img_hash FROM listings WHERE active='t'")
+	rows, err := db.DBconn.Query("SELECT user_id, listing_id, title, description, material_type, material_weight, address, img_hash FROM listings WHERE active='t'")
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -114,7 +114,7 @@ func GetListings(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var listing Listing
-		err = rows.Scan(&listing.UserID, &listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode, &listing.ImageHash)
+		err = rows.Scan(&listing.UserID, &listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Address, &listing.ImageHash)
 		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
 		listing.ImageHash = "https://s3.us-east-2.amazonaws.com/recyclr/images/" + listing.ImageHash
 		listings = append(listings, listing)
@@ -131,7 +131,7 @@ func GetListings(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateListing creates a new listing in the database. It expects title, description, img_hash,
-// material_type, material_weight, user_id, and zipcode. It also reads the AWS configuration to store images.
+// material_type, material_weight, user_id, and address. It also reads the AWS configuration to store images.
 func CreateListing(w http.ResponseWriter, r *http.Request) {
 	var listing Listing
 
@@ -196,13 +196,8 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 	listing.Description = r.FormValue("description")
 	listing.Title = r.FormValue("title")
 	listing.MaterialType = r.FormValue("material_type")
-	zipcode, err := strconv.ParseInt(r.FormValue("zipcode"), 10, 32)
-	if err != nil {
-		http.Error(w, "Invalid zipcode", http.StatusInternalServerError)
-		return
-	}
+	listing.Address = r.FormValue("address")
 
-	listing.Zipcode = int(zipcode)
 	materialWeight, _ := strconv.ParseFloat(r.FormValue("material_weight"), 64)
 	listing.MaterialWeight = materialWeight
 	listing.ImageHash = hashedFilename
@@ -210,11 +205,11 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 	userID, _ := strconv.Atoi(r.FormValue("user_id"))
 	listing.UserID = userID
 
-	sqlStatement := `INSERT INTO listings (title, description, img_hash, material_type, material_weight, user_id, zipcode)
+	sqlStatement := `INSERT INTO listings (title, description, img_hash, material_type, material_weight, user_id, address)
 					VALUES ($1, $2, $3, $4, $5, $6, $7)
 					RETURNING listing_id`
 	id := 0
-	err = db.DBconn.QueryRow(sqlStatement, listing.Title, listing.Description, listing.ImageHash, listing.MaterialType, listing.MaterialWeight, listing.UserID, listing.Zipcode).Scan(&id)
+	err = db.DBconn.QueryRow(sqlStatement, listing.Title, listing.Description, listing.ImageHash, listing.MaterialType, listing.MaterialWeight, listing.UserID, listing.Address).Scan(&id)
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
