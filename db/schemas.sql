@@ -28,10 +28,12 @@ CREATE TABLE Listings (
 	material_type 			TEXT NOT NULL,
 	material_weight 		REAL NOT NULL,
 	user_id 				INT NOT NULL,
-	active 					BOOLEAN NOT NULL DEFAULT 't',
+	active					BOOLEAN NOT NULL DEFAULT 't',
 	pickup_date_time		TIMESTAMP WITH TIME ZONE,
 	zipcode					INT NOT NULL DEFAULT 47906,
-	FOREIGN KEY (user_id) REFERENCES Users(user_id) ON UPDATE CASCADE ON DELETE CASCADE
+	frozen_by				INT,
+	FOREIGN KEY (user_id) REFERENCES Users(user_id) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (frozen_by) REFERENCES Users(user_id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE Orders (

@@ -34,6 +34,7 @@ type Listing struct {
 	Active         bool    `json:"is_active"`
 	PickupDateTime string  `json:"pickup_date_time"`
 	Zipcode        int     `json:"zipcode"`
+	FrozenBy       int     `json:"frozen_by"`
 }
 
 // GetListing returns a listing from the database in JSON format, given the specific listing_id as a URL parameter.
@@ -191,7 +192,13 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 	listing.Description = r.FormValue("description")
 	listing.Title = r.FormValue("title")
 	listing.MaterialType = r.FormValue("material_type")
+	zipcode, err := strconv.ParseInt(r.FormValue("zipcode"), 10, 32)
+	if err != nil {
+		http.Error(w, "Invalid zipcode", http.StatusInternalServerError)
+		return
+	}
 
+	listing.Zipcode = int(zipcode)
 	materialWeight, _ := strconv.ParseFloat(r.FormValue("material_weight"), 64)
 	listing.MaterialWeight = materialWeight
 	listing.ImageHash = hashedFilename
@@ -230,6 +237,49 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 
 	// fmt.Println("New listing created with ID: ", id)
 	json.NewEncoder(w).Encode(listing)
+}
+
+// FreezeListing freezes a listing for a particular company
+func FreezeListing(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	listingID, err := strconv.Atoi(params["id"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	type attributes struct {
+		CompanyID int `json:"company_id"`
+	}
+
+	var attr attributes
+	_ = json.NewDecoder(r.Body).Decode(&attr)
+	fmt.Printf("%d, %d", listingID, attr.CompanyID)
+	sqlStatement := "UPDATE Listings SET active='f', frozen_by=$1 WHERE listing_id=$2"
+	row, err := db.DBconn.Exec(sqlStatement, attr.CompanyID, listingID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	affectedCount, err := row.RowsAffected()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resMap := make(map[string]string)
+	resMap["message"] = "Success"
+	resMap["rows affected"] = strconv.FormatInt(affectedCount, 10)
+	res, err := json.Marshal(resMap)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
 }
 
 // UpdateListing updates a listing in the database, given its' listing_id and other fields requesting to be changed.
