@@ -65,7 +65,7 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	params := mux.Vars(r)
-	userID, err := strconv.Atoi(params["id"])
+	userID, err := strconv.Atoi(params["user_id"])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
