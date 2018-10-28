@@ -35,6 +35,7 @@ func main() {
 	// router.HandleFunc("/company/logout", h.AuthMiddleware(h.LogoutUser)).Methods("POST")
 
 	router.HandleFunc("/listings", h.AuthMiddleware(h.GetListings)).Methods("GET")
+	router.HandleFunc("/listing/freeze/{id}", h.AuthMiddleware(h.FreezeListing)).Methods("POST")
 	router.HandleFunc("/listing/frozen/{user_id}", h.AuthMiddleware(h.GetFrozenListings)).Methods("GET")
 	router.HandleFunc("/listing/{id}", h.AuthMiddleware(h.GetListing)).Methods("GET")
 	router.HandleFunc("/listing", h.AuthMiddleware(h.CreateListing)).Methods("POST")

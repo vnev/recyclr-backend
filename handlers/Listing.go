@@ -34,6 +34,7 @@ type Listing struct {
 	Active         bool    `json:"is_active"`
 	PickupDateTime string  `json:"pickup_date_time"`
 	Zipcode        int     `json:"zipcode"`
+	FrozenBy       int     `json:"frozen_by"`
 }
 
 // GetListing returns a listing from the database in JSON format, given the specific listing_id as a URL parameter.
@@ -49,13 +50,14 @@ func GetListing(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//fmt.Printf("id route param is %d\n", userID)
-	sqlStatement := "SELECT title, user_id, description, img_hash, material_type, material_weight, zipcode, active FROM listings WHERE listing_id=$1"
-	err = db.DBconn.QueryRow(sqlStatement, listingID).Scan(&listing.Title, &listing.UserID, &listing.Description, &listing.ImageHash, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode, &listing.Active)
+	sqlStatement := "SELECT title, user_id, description, img_hash, material_type, material_weight, zipcode, active, frozen_by FROM listings WHERE listing_id=$1"
+	err = db.DBconn.QueryRow(sqlStatement, listingID).Scan(&listing.Title, &listing.UserID, &listing.Description, &listing.ImageHash, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode, &listing.Active, &listing.FrozenBy)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
+	listing.ImageHash = "https://s3.us-east-2.amazonaws.com/recyclr/images/" + listing.ImageHash
 	json.NewEncoder(w).Encode(&listing)
 }
 
@@ -71,7 +73,7 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, zipcode FROM listings WHERE active='f' and user_id=$1", userID)
+	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, zipcode, frozen_by, img_hash FROM listings WHERE active='f' and user_id=$1", userID)
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, "Check your request parameters", http.StatusBadRequest)
@@ -81,7 +83,9 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var listing Listing
-		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode)
+		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode, &listing.FrozenBy, &listing.ImageHash)
+		// TODO: Error check
+		listing.ImageHash = "https://s3.us-east-2.amazonaws.com/recyclr/images/" + listing.ImageHash
 		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
 		frozenListings = append(frozenListings, listing)
 	}
@@ -100,7 +104,7 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 func GetListings(w http.ResponseWriter, r *http.Request) {
 	var listings []Listing
 	w.Header().Set("Content-Type", "application/json")
-	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, zipcode, active FROM listings")
+	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, zipcode, active, frozen_by, img_hash FROM listings")
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -110,8 +114,9 @@ func GetListings(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var listing Listing
-		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode, &listing.Active)
+		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode, &listing.Active, &listing.FrozenBy, &listing.ImageHash)
 		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
+		listing.ImageHash = "https://s3.us-east-2.amazonaws.com/recyclr/images/" + listing.ImageHash
 		listings = append(listings, listing)
 	}
 
@@ -191,7 +196,13 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 	listing.Description = r.FormValue("description")
 	listing.Title = r.FormValue("title")
 	listing.MaterialType = r.FormValue("material_type")
+	zipcode, err := strconv.ParseInt(r.FormValue("zipcode"), 10, 32)
+	if err != nil {
+		http.Error(w, "Invalid zipcode", http.StatusInternalServerError)
+		return
+	}
 
+	listing.Zipcode = int(zipcode)
 	materialWeight, _ := strconv.ParseFloat(r.FormValue("material_weight"), 64)
 	listing.MaterialWeight = materialWeight
 	listing.ImageHash = hashedFilename
@@ -230,6 +241,49 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 
 	// fmt.Println("New listing created with ID: ", id)
 	json.NewEncoder(w).Encode(listing)
+}
+
+// FreezeListing freezes a listing for a particular company
+func FreezeListing(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	listingID, err := strconv.Atoi(params["id"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	type attributes struct {
+		CompanyID int `json:"company_id"`
+	}
+
+	var attr attributes
+	_ = json.NewDecoder(r.Body).Decode(&attr)
+	fmt.Printf("%d, %d", listingID, attr.CompanyID)
+	sqlStatement := "UPDATE Listings SET active='f', frozen_by=$1 WHERE listing_id=$2"
+	row, err := db.DBconn.Exec(sqlStatement, attr.CompanyID, listingID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	affectedCount, err := row.RowsAffected()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resMap := make(map[string]string)
+	resMap["message"] = "Success"
+	resMap["rows affected"] = strconv.FormatInt(affectedCount, 10)
+	res, err := json.Marshal(resMap)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
 }
 
 // UpdateListing updates a listing in the database, given its' listing_id and other fields requesting to be changed.
