@@ -23,8 +23,6 @@ type Message struct {
 func GetMessages(w http.ResponseWriter, r *http.Request) {
 	var messages []Message
 	type getAttributes struct {
-		FromUser   int `json:"from_user"`
-		ToUser     int `json:"to_user"`
 		ForListing int `json:"for_listing"`
 	}
 
@@ -33,8 +31,8 @@ func GetMessages(w http.ResponseWriter, r *http.Request) {
 
 	_ = json.NewDecoder(r.Body).Decode(&attr)
 
-	sqlStatement := `SELECT message_id, message_time, message_content FROM Messages WHERE from_user=$1 AND to_user=$2 AND for_listing=$3 ORDER BY "message_time"`
-	rows, err := db.DBconn.Query(sqlStatement, attr.FromUser, attr.ToUser, attr.ForListing)
+	sqlStatement := `SELECT message_id, from_user, to_user, message_time, message_content FROM Messages WHERE for_listing=$1 ORDER BY "message_time"`
+	rows, err := db.DBconn.Query(sqlStatement, attr.ForListing)
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, "Check your request parameters", http.StatusBadRequest)
@@ -43,7 +41,7 @@ func GetMessages(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var message Message
-		if err = rows.Scan(&message.ID, &message.Timestamp, &message.Content); err != nil {
+		if err = rows.Scan(&message.ID, &message.FromUser, &message.ToUser, &message.Timestamp, &message.Content); err != nil {
 			fmt.Println(err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
