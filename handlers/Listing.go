@@ -59,6 +59,43 @@ func GetListing(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(&listing)
 }
 
+// GetFrozenListings gets all frozen listings for a particular user.
+func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
+	var frozenListings []Listing
+	w.Header().Set("Content-Type", "application/json")
+
+	params := mux.Vars(r)
+	userID, err := strconv.Atoi(params["id"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, zipcode FROM listings WHERE active='f' and user_id=$1", userID)
+	if err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, "Check your request parameters", http.StatusBadRequest)
+		return
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var listing Listing
+		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode)
+		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
+		frozenListings = append(frozenListings, listing)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(frozenListings)
+}
+
 // GetListings returns all listings from the database in JSON format.
 func GetListings(w http.ResponseWriter, r *http.Request) {
 	var listings []Listing
@@ -66,7 +103,7 @@ func GetListings(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, zipcode, active FROM listings")
 	if err != nil {
 		fmt.Println(err.Error())
-		http.Error(w, "Check your request parameters", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -81,7 +118,7 @@ func GetListings(w http.ResponseWriter, r *http.Request) {
 	err = rows.Err()
 	if err != nil {
 		fmt.Println(err.Error())
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -168,7 +205,7 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 	id := 0
 	err = db.DBconn.QueryRow(sqlStatement, listing.Title, listing.Description, listing.ImageHash, listing.MaterialType, listing.MaterialWeight, listing.UserID, listing.Zipcode).Scan(&id)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err.Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
