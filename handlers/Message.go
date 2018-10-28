@@ -69,8 +69,8 @@ func PutMessage(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&newMessage)
 
 	newMessageID := -1
-	sqlStatement := "INSERT INTO Messages (message_time, from_user, to_user, for_listing, message_content) VALUES ($1,$2,$3,$4,$5) RETURNING message_id"
-	if err := db.DBconn.QueryRow(sqlStatement, newMessage.Timestamp, newMessage.FromUser, newMessage.ToUser, newMessage.ListingID, newMessage.Content).Scan(&newMessageID); err != nil {
+	sqlStatement := "INSERT INTO Messages (from_user, to_user, for_listing, message_content) VALUES ($1,$2,$3,$4) RETURNING message_id"
+	if err := db.DBconn.QueryRow(sqlStatement, newMessage.FromUser, newMessage.ToUser, newMessage.ListingID, newMessage.Content).Scan(&newMessageID); err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
