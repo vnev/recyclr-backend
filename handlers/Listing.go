@@ -104,7 +104,7 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 func GetListings(w http.ResponseWriter, r *http.Request) {
 	var listings []Listing
 	w.Header().Set("Content-Type", "application/json")
-	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, zipcode, active, frozen_by, img_hash FROM listings")
+	rows, err := db.DBconn.Query("SELECT user_id, listing_id, title, description, material_type, material_weight, zipcode, img_hash FROM listings WHERE active='t'")
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -114,7 +114,7 @@ func GetListings(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var listing Listing
-		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode, &listing.Active, &listing.FrozenBy, &listing.ImageHash)
+		err = rows.Scan(&listing.UserID, &listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Zipcode, &listing.ImageHash)
 		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
 		listing.ImageHash = "https://s3.us-east-2.amazonaws.com/recyclr/images/" + listing.ImageHash
 		listings = append(listings, listing)
@@ -262,6 +262,42 @@ func FreezeListing(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("%d, %d", listingID, attr.CompanyID)
 	sqlStatement := "UPDATE Listings SET active='f', frozen_by=$1 WHERE listing_id=$2"
 	row, err := db.DBconn.Exec(sqlStatement, attr.CompanyID, listingID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	affectedCount, err := row.RowsAffected()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resMap := make(map[string]string)
+	resMap["message"] = "Success"
+	resMap["rows affected"] = strconv.FormatInt(affectedCount, 10)
+	res, err := json.Marshal(resMap)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
+}
+
+// UnfreezeListing unfreeze a particular listing
+func UnfreezeListing(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	listingID, err := strconv.Atoi(params["id"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	sqlStatement := `UPDATE Listings SET active='t', frozen_by=NULL WHERE listing_id=$1`
+	row, err := db.DBconn.Exec(sqlStatement, listingID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
