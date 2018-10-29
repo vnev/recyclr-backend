@@ -50,7 +50,6 @@ func StripePayment(w http.ResponseWriter, r *http.Request) {
 	}
 	params.SetSource(stripeToken)
 	ch, err := charge.New(params)
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

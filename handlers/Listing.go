@@ -35,6 +35,8 @@ type Listing struct {
 	Address        string  `json:"address"`
 	FrozenBy       int     `json:"frozen_by"`
 	Price          float64 `json:"price"`
+	Username       string  `json:"username"`
+	CompanyName    string  `json:"company_name"`
 }
 
 // GetListing returns a listing from the database in JSON format, given the specific listing_id as a URL parameter.
@@ -85,9 +87,19 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 
 	sqlStatement := ""
 	if attr.IsCompany {
-		sqlStatement = "SELECT listing_id, user_id, title, description, material_type, material_weight, address, frozen_by, img_hash FROM listings WHERE active='f' and frozen_by=$1"
+		sqlStatement = `SELECT u.user_name, u2.user_name, l.listing_id, l.user_id, l.title, 
+		l.description, l.material_type, l.material_weight, l.address, l.frozen_by, l.img_hash 
+		FROM Listings l 
+		INNER JOIN Users u ON l.user_id=u.user_id 
+		INNER JOIN Users u2 ON u2.user_id=l.frozen_by 
+		WHERE l.active='f' and l.frozen_by=$1`
 	} else {
-		sqlStatement = "SELECT listing_id, user_id, title, description, material_type, material_weight, address, frozen_by, img_hash FROM listings WHERE active='f' and user_id=$1"
+		sqlStatement = `SELECT u.user_name, u2.user_name, l.listing_id, l.user_id, l.title, 
+		l.description, l.material_type, l.material_weight, l.address, l.frozen_by, l.img_hash 
+		FROM Listings l
+		INNER JOIN Users u ON u.user_id=l.user_id
+		INNER JOIN Users u2 ON u2.user_id=l.frozen_by
+		WHERE l.active='f' and l.user_id=$1`
 	}
 	rows, err := db.DBconn.Query(sqlStatement, userID)
 	if err != nil {
@@ -99,7 +111,7 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var listing Listing
-		err = rows.Scan(&listing.ID, &listing.UserID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Address, &listing.FrozenBy, &listing.ImageHash)
+		err = rows.Scan(&listing.Username, &listing.CompanyName, &listing.ID, &listing.UserID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Address, &listing.FrozenBy, &listing.ImageHash)
 		// TODO: Error check
 		listing.ImageHash = "https://s3.us-east-2.amazonaws.com/recyclr/images/" + listing.ImageHash
 		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
@@ -120,7 +132,7 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 func GetListings(w http.ResponseWriter, r *http.Request) {
 	var listings []Listing
 	w.Header().Set("Content-Type", "application/json")
-	rows, err := db.DBconn.Query("SELECT user_id, listing_id, title, description, material_type, material_weight, address, img_hash FROM listings WHERE active='t'")
+	rows, err := db.DBconn.Query("SELECT u.user_name, l.user_id, l.listing_id, l.title, l.description, l.material_type, l.material_weight, l.address, l.img_hash FROM Listings l INNER JOIN Users u ON l.user_id=u.user_id WHERE l.active='t'")
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -130,7 +142,7 @@ func GetListings(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var listing Listing
-		err = rows.Scan(&listing.UserID, &listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Address, &listing.ImageHash)
+		err = rows.Scan(&listing.Username, &listing.UserID, &listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Address, &listing.ImageHash)
 		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
 		listing.ImageHash = "https://s3.us-east-2.amazonaws.com/recyclr/images/" + listing.ImageHash
 		listings = append(listings, listing)
