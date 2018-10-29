@@ -27,6 +27,7 @@ type User struct {
 	Token     string `json:"token"`
 	City      string `json:"city"`
 	State     string `json:"state"`
+	Points    int    `json:"points"`
 }
 
 // GetUser returns a user from the database in JSON format, given the specific user_id as a URL parameter.

@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"math"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -219,15 +218,6 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 	var listingCount float64
 	sqlStatement = "SELECT COUNT(*) FROM listings WHERE user_id=$1"
 	err = db.DBconn.QueryRow(sqlStatement, userID).Scan(&listingCount)
-	if err != nil {
-		fmt.Println(err.Error())
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	userIncentiveLevel := 0
-	sqlStatement = "UPDATE users SET level=$1 WHERE user_id=$2 RETURNING level"
-	err = db.DBconn.QueryRow(sqlStatement, math.Floor(listingCount/10), userID).Scan(&userIncentiveLevel)
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)

@@ -38,9 +38,26 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	listingUserID, listingWeight := 0, 0
+	sqlStatement = "SELECT user_id, material_weight FROM Listings WHERE id=$1"
+	err = db.DBconn.QueryRow(sqlStatement, listing.ID).Scan(&listingUserID, &listingWeight)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// update points for user
+	points := 50 + ((listingWeight * 10) / 100)
+	sqlStatement = "UPDATE Users SET points=points+$1 WHERE user_id=$2 RETURNING points"
+	err = db.DBconn.QueryRow(sqlStatement, points, listingUserID).Scan(&points)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	resMap := make(map[string]string)
 	resMap["message"] = "Success"
 	resMap["invoice_id"] = strconv.Itoa(invoiceID)
+	resMap["new_points"] = strconv.Itoa(points)
 	res, err := json.Marshal(resMap)
 	if err != nil {
 		http.Error(w, "Unable to create JSON map", http.StatusInternalServerError)
@@ -48,7 +65,6 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(res)
-	return
 }
 
 //GetInvoice returns the status and listing ID associated with
@@ -84,5 +100,4 @@ func GetInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(res)
-	return
 }
