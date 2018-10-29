@@ -72,7 +72,23 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, address, frozen_by, img_hash FROM listings WHERE active='f' and user_id=$1", userID)
+	type attributes struct {
+		IsCompany bool `json:"is_company"`
+	}
+
+	var attr attributes
+	if err = json.NewDecoder(r.Body).Decode(&attr); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	sqlStatement := ""
+	if attr.IsCompany {
+		sqlStatement = "SELECT listing_id, user_id, title, description, material_type, material_weight, address, frozen_by, img_hash FROM listings WHERE active='f' and frozen_by=$1"
+	} else {
+		sqlStatement = "SELECT listing_id, user_id, title, description, material_type, material_weight, address, frozen_by, img_hash FROM listings WHERE active='f' and user_id=$1"
+	}
+	rows, err := db.DBconn.Query(sqlStatement, userID)
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, "Check your request parameters", http.StatusBadRequest)
@@ -82,7 +98,7 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var listing Listing
-		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Address, &listing.FrozenBy, &listing.ImageHash)
+		err = rows.Scan(&listing.ID, &listing.UserID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Address, &listing.FrozenBy, &listing.ImageHash)
 		// TODO: Error check
 		listing.ImageHash = "https://s3.us-east-2.amazonaws.com/recyclr/images/" + listing.ImageHash
 		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
