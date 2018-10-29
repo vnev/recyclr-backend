@@ -17,7 +17,6 @@ CREATE TABLE Users (
 	passwd 			TEXT NOT NULL,
 	token			TEXT NOT NULL DEFAULT '0',
 	banned    		BOOLEAN NOT NULL DEFAULT 'f',
-	level			INT NOT NULL DEFAULT 1,
 	points			INT NOT NULL DEFAULT 0
 );
 
