@@ -11,8 +11,9 @@ import (
 
 //Invoice struct to hold information pertaining to an invoice
 type Invoice struct {
-	ID         int  `json:"invoice_id"`
-	Status     bool `json:"invoice_status"`
+	ID         int     `json:"invoice_id"`
+	Status     bool    `json:"invoice_status"`
+	Price      float64 `json:"price"`
 	ForListing Listing
 }
 
@@ -22,6 +23,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	var listing Listing
 	_ = json.NewDecoder(r.Body).Decode(&listing)
 
+	// confirm if the listing actually exists
 	title := ""
 	sqlStatement := "SELECT title FROM listings WHERE listing_id=$1"
 	err := db.DBconn.QueryRow(sqlStatement, listing.ID).Scan(&title)
@@ -30,7 +32,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sqlStatement = "INSERT INTO invoices (for_listing) VALUES ($1) RETURNING invoice_id"
+	sqlStatement = "INSERT INTO invoices (for_listing) VALUES ($1, $2) RETURNING invoice_id"
 	invoiceID := -1
 	err = db.DBconn.QueryRow(sqlStatement, listing.ID).Scan(&invoiceID)
 	if err != nil || invoiceID < 0 {

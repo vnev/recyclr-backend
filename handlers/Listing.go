@@ -34,6 +34,7 @@ type Listing struct {
 	PickupDateTime string  `json:"pickup_date_time"`
 	Address        string  `json:"address"`
 	FrozenBy       int     `json:"frozen_by"`
+	Price          float64 `json:"price"`
 }
 
 // GetListing returns a listing from the database in JSON format, given the specific listing_id as a URL parameter.
@@ -255,14 +256,35 @@ func FreezeListing(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type attributes struct {
-		CompanyID int `json:"company_id"`
+		CompanyID    int    `json:"company_id"`
+		MaterialType string `json:"material_type"`
 	}
 
 	var attr attributes
 	_ = json.NewDecoder(r.Body).Decode(&attr)
 	fmt.Printf("%d, %d", listingID, attr.CompanyID)
-	sqlStatement := "UPDATE Listings SET active='f', frozen_by=$1 WHERE listing_id=$2"
-	row, err := db.DBconn.Exec(sqlStatement, attr.CompanyID, listingID)
+	sqlStatement := "SELECT material_type FROM Listings WHERE listing_id=$1"
+	if err = db.DBconn.QueryRow(sqlStatement, listingID).Scan(&attr.MaterialType); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var price float64
+	switch attr.MaterialType {
+	case "Plastic":
+		price = 1.50
+	case "Electronics":
+		price = 1.70
+	case "Rubber":
+		price = 1.90
+	case "Textiles":
+		price = 2.00
+	default:
+		price = 2.30
+	}
+
+	sqlStatement = "UPDATE Listings SET active='f', frozen_by=$1, price=$2 WHERE listing_id=$3"
+	row, err := db.DBconn.Exec(sqlStatement, attr.CompanyID, price, listingID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -297,7 +319,7 @@ func UnfreezeListing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sqlStatement := `UPDATE Listings SET active='t', frozen_by=NULL WHERE listing_id=$1`
+	sqlStatement := `UPDATE Listings SET active='t', frozen_by=NULL, price=NULL WHERE listing_id=$1`
 	row, err := db.DBconn.Exec(sqlStatement, listingID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
