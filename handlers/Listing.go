@@ -236,6 +236,7 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 	listing.Title = r.FormValue("title")
 	listing.MaterialType = r.FormValue("material_type")
 	listing.Address = r.FormValue("address")
+	listing.PickupDateTime = r.FormValue("pickup_date_time")
 
 	materialWeight, _ := strconv.ParseFloat(r.FormValue("material_weight"), 64)
 	listing.MaterialWeight = materialWeight
@@ -244,13 +245,13 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 	userID, _ := strconv.Atoi(r.FormValue("user_id"))
 	listing.UserID = userID
 
-	sqlStatement := `INSERT INTO listings (title, description, img_hash, material_type, material_weight, user_id, address)
-					VALUES ($1, $2, $3, $4, $5, $6, $7)
+	sqlStatement := `INSERT INTO listings (title, description, img_hash, material_type, material_weight, user_id, address, pickup_date_time)
+					VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 					RETURNING listing_id`
 	id := 0
 	err = db.DBconn.QueryRow(sqlStatement, listing.Title, listing.Description,
 		listing.ImageHash, listing.MaterialType, listing.MaterialWeight, listing.UserID,
-		listing.Address).Scan(&id)
+		listing.Address, listing.PickupDateTime).Scan(&id)
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
