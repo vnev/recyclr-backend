@@ -14,6 +14,7 @@ type Invoice struct {
 	ID         int     `json:"invoice_id"`
 	Status     bool    `json:"invoice_status"`
 	Price      float64 `json:"price"`
+	CreatedAt  string  `json:"created_at"`
 	ForListing Listing
 }
 
