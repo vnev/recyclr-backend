@@ -15,6 +15,10 @@ func main() {
 	// The main router that handles all of our http routes
 	router := mux.NewRouter()
 
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
+	})
+
 	router.HandleFunc("/signin", h.AuthenticateUser).Methods("POST")
 	router.HandleFunc("/charge", h.StripePayment).Methods("POST")
 	router.HandleFunc("/user/{id}/delete", h.DeleteUser).Methods("GET")
