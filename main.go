@@ -70,7 +70,7 @@ func main() {
 	router.HandleFunc("/messages/get", h.AuthMiddleware(h.GetMessages)).Methods("POST")
 	router.HandleFunc("/messages/new", h.AuthMiddleware(h.PutMessage)).Methods("POST")
 
-	router.HandleFunc("/loaderio-d4781fa6082004ba4e8a3edc3dbc7299", SendBackToken).Methods("GET")
+	router.HandleFunc("/loaderio-d4781fa6082004ba4e8a3edc3dbc7299.txt", SendBackToken).Methods("GET")
 
 	db.ConnectToDB()
 	defer db.DBconn.Close()
