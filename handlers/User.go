@@ -44,8 +44,8 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//fmt.Printf("id route param is %d\n", userID)
-	sqlStatement := "SELECT user_id, address, city, state, email, user_name, is_company, rating, joined_on FROM users WHERE user_id=$1"
-	err = db.DBconn.QueryRow(sqlStatement, userID).Scan(&user.ID, &user.Address, &user.City, &user.State, &user.Email, &user.Name, &user.IsCompany, &user.Rating, &user.JoinedOn)
+	sqlStatement := "SELECT user_id, points, address, city, state, email, user_name, is_company, rating, joined_on FROM users WHERE user_id=$1"
+	err = db.DBconn.QueryRow(sqlStatement, userID).Scan(&user.ID, &user.Points, &user.Address, &user.City, &user.State, &user.Email, &user.Name, &user.IsCompany, &user.Rating, &user.JoinedOn)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
