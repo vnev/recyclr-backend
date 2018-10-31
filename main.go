@@ -18,6 +18,12 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+//SendBackToken sends back a token for loader.io to verify that we own
+// recyclr.xyz so we can run load tests
+func SendBackToken(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%s", "loaderio-d4781fa6082004ba4e8a3edc3dbc7299")
+}
+
 func main() {
 	// The main router that handles all of our http routes
 	router := mux.NewRouter()
@@ -63,6 +69,8 @@ func main() {
 
 	router.HandleFunc("/messages/get", h.AuthMiddleware(h.GetMessages)).Methods("POST")
 	router.HandleFunc("/messages/new", h.AuthMiddleware(h.PutMessage)).Methods("POST")
+
+	router.HandleFunc("/loaderio-d4781fa6082004ba4e8a3edc3dbc7299", SendBackToken).Methods("GET")
 
 	db.ConnectToDB()
 	defer db.DBconn.Close()
