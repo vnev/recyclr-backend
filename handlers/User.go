@@ -69,6 +69,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	id := 0
 	err := db.DBconn.QueryRow(sqlStatement, user.Address, user.City, user.State, user.Email, user.Name, false, user.Password).Scan(&id)
 	if err != nil {
+		fmt.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
