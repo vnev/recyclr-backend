@@ -11,13 +11,22 @@ import (
 	h "github.com/vnev/recyclr-backend/handlers"
 )
 
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%s %s\n", r.Method, r.URL)
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	// The main router that handles all of our http routes
 	router := mux.NewRouter()
 
-	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
-	})
+	/* router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%s %s\n", r.Method, r.URL)
+	}) */
+
+	router.Use(loggingMiddleware)
 
 	router.HandleFunc("/signin", h.AuthenticateUser).Methods("POST")
 	router.HandleFunc("/charge", h.StripePayment).Methods("POST")
