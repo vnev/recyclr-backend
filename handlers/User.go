@@ -166,7 +166,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < structIterator.NumField(); i++ {
 		//fmt.Printf("field: %+v, value: %+v\n", structIterator.Type().Field(i).Name, structIterator.Field(i).Interface())
 		field := structIterator.Type().Field(i).Name
-		fmt.Printf("Field is %s\n", field)
+		/*fmt.Printf("Field is %s\n", field)
 		if field != "Address" {
 			fmt.Printf("not address\n")
 			if field != "Email" {
@@ -179,7 +179,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
-		}
+		}*/
 
 		val := structIterator.Field(i).Interface()
 
@@ -192,6 +192,9 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 			} else if strings.ToLower(field) == "password" {
 				// crypt($5, gen_salt('md5'))
 				sqlStatement = sqlStatement + "passwd=crypt($" + strconv.Itoa(j) + ", gen_salt('md5')), "
+			} else if strings.ToLower(field) == "points" {
+				// crypt($5, gen_salt('md5'))
+				sqlStatement = sqlStatement + "points=$" + strconv.Itoa(j) + ", "
 			} else {
 				sqlStatement = sqlStatement + strings.ToLower(field) + "=$" + strconv.Itoa(j) + ", "
 			}
