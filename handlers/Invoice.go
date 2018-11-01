@@ -38,7 +38,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sqlStatement = "INSERT INTO invoices (for_listing) VALUES ($1, $2) RETURNING invoice_id"
+	sqlStatement = "INSERT INTO invoices (for_listing) VALUES ($1) RETURNING invoice_id"
 	invoiceID := -1
 	err = db.DBconn.QueryRow(sqlStatement, listing.ID).Scan(&invoiceID)
 	if err != nil || invoiceID < 0 {
