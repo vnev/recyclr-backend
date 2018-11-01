@@ -187,6 +187,12 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 		// Check if the field is zero-valued, meaning it won't be updated
 		//fmt.Printf("VAL IS %v and TYPE IS %v and ZERO OF TYPE IS %v\n", val, structIterator.Field(i).Type(), reflect.Zero(structIterator.Field(i).Type()).Interface())
+
+		if strings.ToLower(field) == "points" && val == 0 {
+			fmt.Println("updating points of user to 0")
+			sqlStatement = sqlStatement + "points=$" + strconv.Itoa(j) + ", "
+		}
+
 		if !reflect.DeepEqual(val, reflect.Zero(structIterator.Field(i).Type()).Interface()) {
 			fmt.Printf("%v is non-zero, adding to update\n", field)
 			if strings.ToLower(field) == "name" {
