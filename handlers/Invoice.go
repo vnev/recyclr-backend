@@ -130,7 +130,8 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 	// }
 	for i := 0; i < len(invoices); i++ {
 		invoice := invoices[i]
-		fmt.Printf("%s %d %d %d %s %s %s\n", invoice.Status, invoice.ID, invoice.ForListing, invoice.Price, invoice.UserName, invoice.CompanyName, invoice.InvoiceDateTime)
+		res, _ := json.Marshal(invoice)
+		fmt.Println(string(res))
 	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(invoices)
