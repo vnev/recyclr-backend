@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/rs/cors"
 	"github.com/vnev/recyclr-backend/db"
 	h "github.com/vnev/recyclr-backend/handlers"
 )
@@ -77,7 +76,7 @@ func main() {
 	db.ConnectToDB()
 	defer db.DBconn.Close()
 
-	handler := cors.Default().Handler(router)
+	// handler := cors.Default().Handler(router)
 
 	fmt.Println("Listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", handler))
