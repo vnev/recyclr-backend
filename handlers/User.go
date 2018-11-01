@@ -468,7 +468,7 @@ func DeductUserPoints(w http.ResponseWriter, r *http.Request) {
 
 	sqlStatement := `UPDATE Listings l 
 					JOIN Users u ON u.user_id=l.user_id 
-					SET l.price=l.price-(l.price*($1/100)), u.points=u.points-$2 
+					SET l.price=l.price-(l.price*($1/100)), u.points=$2 
 					WHERE l.listing_id=$3`
 	row, err := db.DBconn.Exec(sqlStatement, attr.Percentage, attr.PointsDeducted, listingID)
 	if err != nil {
