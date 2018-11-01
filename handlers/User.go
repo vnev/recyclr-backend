@@ -166,34 +166,36 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < structIterator.NumField(); i++ {
 		//fmt.Printf("field: %+v, value: %+v\n", structIterator.Type().Field(i).Name, structIterator.Field(i).Interface())
 		field := structIterator.Type().Field(i).Name
-		/*fmt.Printf("Field is %s\n", field)
+		/*fmt.Printf("Field is %s and val is %v\n", field)
 		if field != "Address" {
-			fmt.Printf("not address\n")
+			//fmt.Printf("not address\n")
 			if field != "Email" {
-				fmt.Printf("not email\n")
+				//fmt.Printf("not email\n")
 				if field != "Name" {
-					fmt.Printf("not name\n")
+					//fmt.Printf("not name\n")
 					if field != "Password" {
-						fmt.Printf("not passwd\n")
+						//fmt.Printf("not passwd\n")
 						continue
 					}
 				}
 			}
-		}*/
+		} */
 
 		val := structIterator.Field(i).Interface()
+
+		fmt.Printf("field is %s and val is %v\n", field, val)
 
 		// Check if the field is zero-valued, meaning it won't be updated
 		//fmt.Printf("VAL IS %v and TYPE IS %v and ZERO OF TYPE IS %v\n", val, structIterator.Field(i).Type(), reflect.Zero(structIterator.Field(i).Type()).Interface())
 		if !reflect.DeepEqual(val, reflect.Zero(structIterator.Field(i).Type()).Interface()) {
-			// fmt.Printf("%v is non-zero, adding to update\n", field)
+			fmt.Printf("%v is non-zero, adding to update\n", field)
 			if strings.ToLower(field) == "name" {
 				sqlStatement = sqlStatement + "user_name=$" + strconv.Itoa(j) + ", "
 			} else if strings.ToLower(field) == "password" {
 				// crypt($5, gen_salt('md5'))
 				sqlStatement = sqlStatement + "passwd=crypt($" + strconv.Itoa(j) + ", gen_salt('md5')), "
 			} else if strings.ToLower(field) == "points" {
-				// crypt($5, gen_salt('md5'))
+				fmt.Println("updating points of user")
 				sqlStatement = sqlStatement + "points=$" + strconv.Itoa(j) + ", "
 			} else {
 				sqlStatement = sqlStatement + strings.ToLower(field) + "=$" + strconv.Itoa(j) + ", "
