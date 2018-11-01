@@ -12,11 +12,14 @@ import (
 
 //Invoice struct to hold information pertaining to an invoice
 type Invoice struct {
-	ID         int     `json:"invoice_id"`
-	Status     bool    `json:"invoice_status"`
-	Price      float64 `json:"price"`
-	CreatedAt  string  `json:"created_at"`
-	ForListing Listing
+	ID              int     `json:"invoice_id"`
+	Status          bool    `json:"invoice_status"`
+	Price           float64 `json:"price"`
+	CreatedAt       string  `json:"created_at"`
+	CompanyName     string  `json:"company_name"`
+	InvoiceDateTime string  `json:"invoice_date_time"`
+	UserName        string  `json:"user_name"`
+	ForListing      Listing
 }
 
 //CreateInvoice creates a new invoice and stores it into the database
@@ -91,9 +94,11 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sqlStatement := `SELECT i.status, i.invoice_id, l.listing_id FROM invoices i 
+	sqlStatement := `SELECT i.status, i.invoice_id, l.listing_id, l.price, u.user_name, u2.user_name, i.created_at
+					FROM invoices i 
 					INNER JOIN Users u ON u.user_id=$1 
 					INNER JOIN Listings l ON l.listing_id=i.for_listing
+					INNER JOIN Users u2 ON l.frozen_by=u2.user_id
 					ORDER BY i.created_at DESC`
 	rows, err := db.DBconn.Query(sqlStatement, userID)
 	if err != nil {
@@ -104,7 +109,7 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var invoice Invoice
-		err = rows.Scan(&invoice.Status, &invoice.ID, &invoice.ForListing)
+		err = rows.Scan(&invoice.Status, &invoice.ID, &invoice.ForListing, &invoice.Price, &invoice.UserName, &invoice.CompanyName, &invoice.InvoiceDateTime)
 		invoices = append(invoices, invoice)
 	}
 	// Geo wants price, date, and company added below
