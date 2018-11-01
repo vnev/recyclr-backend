@@ -92,6 +92,7 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 		CreatedAt   string  `json:"created_at"`
 		CompanyName string  `json:"company_name"`
 		UserName    string  `json:"user_name"`
+		Title       string  `json:"title"`
 	}
 
 	var invoices []subinvoice
@@ -102,7 +103,7 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sqlStatement := `SELECT i.status, i.invoice_id, l.price, u.user_name, u2.user_name, i.created_at
+	sqlStatement := `SELECT i.status, i.invoice_id, l.price, l.title, u.user_name, u2.user_name, i.created_at
 					FROM invoices i 
 					INNER JOIN Users u ON u.user_id=$1 
 					INNER JOIN Listings l ON l.listing_id=i.for_listing
@@ -118,7 +119,7 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var invoice subinvoice
-		err = rows.Scan(&invoice.Status, &invoice.ID, &invoice.Price, &invoice.UserName, &invoice.CompanyName, &invoice.CreatedAt)
+		err = rows.Scan(&invoice.Status, &invoice.ID, &invoice.Price, &invoice.Title, &invoice.UserName, &invoice.CompanyName, &invoice.CreatedAt)
 		invoices = append(invoices, invoice)
 	}
 	if err = rows.Err(); err != nil {
