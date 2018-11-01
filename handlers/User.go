@@ -477,9 +477,7 @@ func DeductUserPoints(w http.ResponseWriter, r *http.Request) {
 	var attr attributes
 	_ = json.NewDecoder(r.Body).Decode(&attr)
 
-	sqlStatement := `UPDATE Listings l 
-					SET l.price=l.price-(l.price*($1/100))
-					WHERE l.listing_id=$2`
+	sqlStatement := `UPDATE Listings SET price=price-(price*($1/100)) WHERE listing_id=$2`
 	row, err := db.DBconn.Exec(sqlStatement, attr.Percentage, listingID)
 	if err != nil {
 		fmt.Println(err.Error())
