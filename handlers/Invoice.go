@@ -25,6 +25,8 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	var listing Listing
 	_ = json.NewDecoder(r.Body).Decode(&listing)
 
+	fmt.Printf("listingID passed in is %d\n", listing.ID)
+
 	// confirm if the listing actually exists
 	title := ""
 	sqlStatement := "SELECT title FROM listings WHERE listing_id=$1"
