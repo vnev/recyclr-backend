@@ -446,3 +446,24 @@ func GetTransactions(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(orders)
 }
+
+//DeductPoints
+// func DeductUserPoints(w http.ResponseWriter, r *http.Request) {
+// 	w.Header().Set("Content-Type", "application/json")
+
+// 	params := mux.Vars(r)
+// 	userID, err := strconv.Atoi(params["id"])
+// 	if err != nil {
+// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	type attributes struct {
+// 		PointsDeducted int     `json:"points_deducted"`
+// 		NewPrice       float64 `json:"new_price"`
+// 	}
+
+// 	var attr attributes
+// 	_ = json.NewDecoder(r.Body).Decode(&attr)
+
+// }

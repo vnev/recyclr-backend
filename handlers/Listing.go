@@ -248,10 +248,10 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 	sqlStatement := `INSERT INTO listings (title, description, img_hash, material_type, material_weight, user_id, address, pickup_date_time)
 					VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 					RETURNING listing_id`
-	id := 0
+
 	err = db.DBconn.QueryRow(sqlStatement, listing.Title, listing.Description,
 		listing.ImageHash, listing.MaterialType, listing.MaterialWeight, listing.UserID,
-		listing.Address, listing.PickupDateTime).Scan(&id)
+		listing.Address, listing.PickupDateTime).Scan(&listing.ID)
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)

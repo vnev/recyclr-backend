@@ -51,6 +51,13 @@ func StripePayment(w http.ResponseWriter, r *http.Request) {
 	params.SetSource(stripeToken)
 	ch, err := charge.New(params)
 	if err != nil {
+		sqlStatement = "DELETE FROM Listings WHERE listing_id=$1"
+		_, err := db.DBconn.Exec(sqlStatement, listingID)
+		if err != nil {
+			fmt.Println(err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -60,11 +67,6 @@ func StripePayment(w http.ResponseWriter, r *http.Request) {
 	resMap["stripe_status"] = ch.Status
 
 	res, err := json.Marshal(resMap)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
 	w.Write(res)
 }
