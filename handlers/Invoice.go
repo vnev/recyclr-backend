@@ -48,7 +48,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	listingUserID, listingWeight := 0, 0
-	sqlStatement = "SELECT user_id, material_weight FROM Listings WHERE id=$1"
+	sqlStatement = "SELECT user_id, material_weight FROM Listings WHERE listing_id=$1"
 	err = db.DBconn.QueryRow(sqlStatement, listing.ID).Scan(&listingUserID, &listingWeight)
 	if err != nil {
 		fmt.Println("CreateInvoice Query 3 fail")
