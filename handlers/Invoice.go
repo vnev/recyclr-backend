@@ -85,7 +85,17 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 //GetInvoices returns the status and listing ID associated with
 //the invoice identified by invoice_id (passed into request body)
 func GetInvoices(w http.ResponseWriter, r *http.Request) {
-	var invoices []Invoice
+	type subinvoice struct {
+		ID              int     `json:"invoice_id"`
+		Status          bool    `json:"invoice_status"`
+		Price           float64 `json:"price"`
+		CreatedAt       string  `json:"created_at"`
+		CompanyName     string  `json:"company_name"`
+		InvoiceDateTime string  `json:"invoice_date_time"`
+		UserName        string  `json:"user_name"`
+	}
+
+	var invoices []subinvoice
 	// _ = json.NewDecoder(r.Body).Decode(&invoice)
 	params := mux.Vars(r)
 	userID, err := strconv.Atoi(params["user_id"])
@@ -94,7 +104,7 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sqlStatement := `SELECT i.status, i.invoice_id, l.listing_id, l.price, u.user_name, u2.user_name, i.created_at
+	sqlStatement := `SELECT i.status, i.invoice_id, l.price, u.user_name, u2.user_name, i.created_at
 					FROM invoices i 
 					INNER JOIN Users u ON u.user_id=$1 
 					INNER JOIN Listings l ON l.listing_id=i.for_listing
@@ -108,8 +118,8 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 
 	defer rows.Close()
 	for rows.Next() {
-		var invoice Invoice
-		err = rows.Scan(&invoice.Status, &invoice.ID, &invoice.ForListing, &invoice.Price, &invoice.UserName, &invoice.CompanyName, &invoice.InvoiceDateTime)
+		var invoice subinvoice
+		err = rows.Scan(&invoice.Status, &invoice.ID, &invoice.Price, &invoice.UserName, &invoice.CompanyName, &invoice.InvoiceDateTime)
 		invoices = append(invoices, invoice)
 	}
 	// Geo wants price, date, and company added below
