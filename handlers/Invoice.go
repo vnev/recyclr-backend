@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -70,73 +71,85 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-//GetInvoice returns the status and listing ID associated with
+//GetInvoices returns the status and listing ID associated with
 //the invoice identified by invoice_id (passed into request body)
-func GetInvoice(w http.ResponseWriter, r *http.Request) {
-	var invoice Invoice
+func GetInvoices(w http.ResponseWriter, r *http.Request) {
+	var invoices []Invoice
 	// _ = json.NewDecoder(r.Body).Decode(&invoice)
 	params := mux.Vars(r)
-	invoiceID, err := strconv.Atoi(params["invoice_id"])
+	userID, err := strconv.Atoi(params["user_id"])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	forListingID := -1
-	sqlStatement := "SELECT status, for_listing FROM invoices WHERE invoice_id=$1"
-	err = db.DBconn.QueryRow(sqlStatement, invoiceID).Scan(&invoice.Status, &forListingID)
+	sqlStatement := `SELECT i.status, i.invoice_id, l.listing_id FROM invoices i 
+					INNER JOIN Users u ON u.user_id=$1 
+					INNER JOIN Listings l ON l.listing_id=i.for_listing
+					ORDER BY i.created_at DESC`
+	rows, err := db.DBconn.Query(sqlStatement, userID)
 	if err != nil {
 		http.Error(w, "Unable to query DB", http.StatusInternalServerError)
 		return
 	}
 
+	defer rows.Close()
+	for rows.Next() {
+		var invoice Invoice
+		err = rows.Scan(&invoice.Status, &invoice.ID, &invoice.ForListing)
+		invoices = append(invoices, invoice)
+	}
 	// Geo wants price, date, and company added below
-	resMap := make(map[string]string)
-	resMap["message"] = "Success"
-	resMap["invoice_status"] = strconv.FormatBool(invoice.Status)
-	resMap["for_listing"] = strconv.Itoa(forListingID)
-	resMap["invoice_id"] = strconv.Itoa(invoiceID)
-
-	res, err := json.Marshal(resMap)
-	if err != nil {
-		http.Error(w, "Unable to create JSON map", http.StatusInternalServerError)
+	// resMap := make(map[string]string)
+	// resMap["message"] = "Success"
+	// resMap["for_listing"] = strconv.Itoa(forListingID)
+	// resMap["invoice_id"] = strconv.Itoa(invoiceID)
+	if err = rows.Err(); err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	// res, err := json.Marshal(resMap)
+	// if err != nil {
+	// 	http.Error(w, "Unable to create JSON map", http.StatusInternalServerError)
+	// 	return
+	// }
 	w.WriteHeader(http.StatusOK)
-	w.Write(res)
+	json.NewEncoder(w).Encode(invoices)
 }
 
 //GetInvoices returns the status and listing ID associated with
 //the invoice identified by invoice_id (passed into request body)
-func GetInvoices(w http.ResponseWriter, r *http.Request) {
-	/* 	var invoice Invoice
-	   	// _ = json.NewDecoder(r.Body).Decode(&invoice)
-	   	params := mux.Vars(r)
-	   	invoiceID, err := strconv.Atoi(params["invoice_id"])
-	   	if err != nil {
-	   		http.Error(w, err.Error(), http.StatusInternalServerError)
-	   		return
-	   	}
+// func GetInvoices(w http.ResponseWriter, r *http.Request) {
+/* 	var invoice Invoice
+   	// _ = json.NewDecoder(r.Body).Decode(&invoice)
+   	params := mux.Vars(r)
+   	invoiceID, err := strconv.Atoi(params["invoice_id"])
+   	if err != nil {
+   		http.Error(w, err.Error(), http.StatusInternalServerError)
+   		return
+   	}
 
-	   	forListingID := -1
-	   	sqlStatement := "SELECT status, for_listing FROM invoices WHERE invoice_id=$1"
-	   	err = db.DBconn.QueryRow(sqlStatement, invoiceID).Scan(&invoice.Status, &forListingID)
-	   	if err != nil {
-	   		http.Error(w, "Unable to query DB", http.StatusInternalServerError)
-	   		return
-	   	}
+   	forListingID := -1
+   	sqlStatement := "SELECT status, for_listing FROM invoices WHERE invoice_id=$1"
+   	err = db.DBconn.QueryRow(sqlStatement, invoiceID).Scan(&invoice.Status, &forListingID)
+   	if err != nil {
+   		http.Error(w, "Unable to query DB", http.StatusInternalServerError)
+   		return
+   	}
 
-	   	resMap := make(map[string]string)
-	   	resMap["message"] = "Success"
-	   	resMap["invoice_status"] = strconv.FormatBool(invoice.Status)
-	   	resMap["for_listing"] = strconv.Itoa(forListingID)
-	   	resMap["invoice_id"] = strconv.Itoa(invoiceID)
+   	resMap := make(map[string]string)
+   	resMap["message"] = "Success"
+   	resMap["invoice_status"] = strconv.FormatBool(invoice.Status)
+   	resMap["for_listing"] = strconv.Itoa(forListingID)
+   	resMap["invoice_id"] = strconv.Itoa(invoiceID)
 
-	   	res, err := json.Marshal(resMap)
-	   	if err != nil {
-	   		http.Error(w, "Unable to create JSON map", http.StatusInternalServerError)
-	   		return
-	   	}
-	   	w.WriteHeader(http.StatusOK)
-	   	w.Write(res) */
-}
+   	res, err := json.Marshal(resMap)
+   	if err != nil {
+   		http.Error(w, "Unable to create JSON map", http.StatusInternalServerError)
+   		return
+   	}
+   	w.WriteHeader(http.StatusOK)
+   	w.Write(res) */
+// }

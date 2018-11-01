@@ -447,23 +447,54 @@ func GetTransactions(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(orders)
 }
 
-//DeductPoints
-// func DeductUserPoints(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json")
+//DeductUserPoints deducts user points and applies new price to listing
+func DeductUserPoints(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 
-// 	params := mux.Vars(r)
-// 	userID, err := strconv.Atoi(params["id"])
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 		return
-// 	}
+	params := mux.Vars(r)
+	listingID, err := strconv.Atoi(params["listing_id"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-// 	type attributes struct {
-// 		PointsDeducted int     `json:"points_deducted"`
-// 		NewPrice       float64 `json:"new_price"`
-// 	}
+	type attributes struct {
+		PointsDeducted int     `json:"points_deducted"`
+		Percentage     float64 `json:"percentage"`
+	}
 
-// 	var attr attributes
-// 	_ = json.NewDecoder(r.Body).Decode(&attr)
+	var attr attributes
+	_ = json.NewDecoder(r.Body).Decode(&attr)
 
-// }
+	sqlStatement := `UPDATE Listings l 
+					JOIN Users u ON u.user_id=l.user_id 
+					SET l.price=l.price-(l.price*($1/100)), u.points=u.points-$2 
+					WHERE l.listing_id=$3`
+	row, err := db.DBconn.Exec(sqlStatement, attr.Percentage, attr.PointsDeducted, listingID)
+	if err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resMap := make(map[string]string)
+	resMap["message"] = "Success"
+
+	rowsAffected, err := row.RowsAffected()
+	if err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resMap["rows affected"] = strconv.Itoa(int(rowsAffected))
+	res, err := json.Marshal(resMap)
+	if err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
+}
