@@ -403,6 +403,7 @@ func GetProgress(w http.ResponseWriter, r *http.Request) {
 		var listing Listing
 		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Active, &listing.ImageHash)
 		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
+		listing.ImageHash = "https://s3.us-east-2.amazonaws.com/recyclr/images/" + listing.ImageHash
 		listings = append(listings, listing)
 	}
 
