@@ -91,7 +91,7 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 	sqlStatement := ""
 	if attr.IsCompany {
 		sqlStatement = `SELECT u.user_name, u2.user_name, l.listing_id, l.user_id, l.title, 
-		l.description, l.material_type, l.material_weight, l.address, l.frozen_by, l.img_hash 
+		l.description, l.material_type, l.material_weight, l.address, l.frozen_by, l.img_hash, l.pickup_date_time 
 		FROM Listings l 
 		INNER JOIN Users u ON l.user_id=u.user_id 
 		INNER JOIN Users u2 ON u2.user_id=l.frozen_by 
