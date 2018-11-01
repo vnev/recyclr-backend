@@ -86,13 +86,12 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 //the invoice identified by invoice_id (passed into request body)
 func GetInvoices(w http.ResponseWriter, r *http.Request) {
 	type subinvoice struct {
-		ID              int     `json:"invoice_id"`
-		Status          bool    `json:"invoice_status"`
-		Price           float64 `json:"price"`
-		CreatedAt       string  `json:"created_at"`
-		CompanyName     string  `json:"company_name"`
-		InvoiceDateTime string  `json:"invoice_date_time"`
-		UserName        string  `json:"user_name"`
+		ID          int     `json:"invoice_id"`
+		Status      bool    `json:"invoice_status"`
+		Price       float64 `json:"price"`
+		CreatedAt   string  `json:"created_at"`
+		CompanyName string  `json:"company_name"`
+		UserName    string  `json:"user_name"`
 	}
 
 	var invoices []subinvoice
@@ -103,6 +102,7 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	fmt.Printf("Fetching invoices for user ID %d\n", userID)
 
 	sqlStatement := `SELECT i.status, i.invoice_id, l.price, u.user_name, u2.user_name, i.created_at
 					FROM invoices i 
@@ -119,7 +119,7 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var invoice subinvoice
-		err = rows.Scan(&invoice.Status, &invoice.ID, &invoice.Price, &invoice.UserName, &invoice.CompanyName, &invoice.InvoiceDateTime)
+		err = rows.Scan(&invoice.Status, &invoice.ID, &invoice.Price, &invoice.UserName, &invoice.CompanyName, &invoice.CreatedAt)
 		invoices = append(invoices, invoice)
 	}
 	// Geo wants price, date, and company added below
