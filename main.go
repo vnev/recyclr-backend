@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/vnev/recyclr-backend/db"
 	h "github.com/vnev/recyclr-backend/handlers"
@@ -13,7 +14,7 @@ import (
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s %s\n", r.Method, r.URL)
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		// w.Header().Set("Access-Control-Allow-Origin", "*")
 		next.ServeHTTP(w, r)
 	})
 }
@@ -79,5 +80,5 @@ func main() {
 	// handler := cors.Default().Handler(router)
 
 	fmt.Println("Listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", handler))
+	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(router)))
 }
