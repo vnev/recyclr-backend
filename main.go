@@ -19,6 +19,17 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func corsHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "OPTIONS" {
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3333")
+		} else {
+			next.ServeHTTP(w, r)
+		}
+	})
+}
+
 //SendBackToken sends back a token for loader.io to verify that we own
 // recyclr.xyz so we can run load tests
 func SendBackToken(w http.ResponseWriter, r *http.Request) {
@@ -34,6 +45,7 @@ func main() {
 	}) */
 
 	router.Use(loggingMiddleware)
+	router.Use(corsHandler)
 
 	router.HandleFunc("/signin", h.AuthenticateUser).Methods("POST")
 	router.HandleFunc("/charge", h.StripePayment).Methods("POST")
