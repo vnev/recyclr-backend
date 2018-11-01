@@ -34,7 +34,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	err := db.DBconn.QueryRow(sqlStatement, listing.ID).Scan(&title)
 	if err != nil || title == "" {
 		fmt.Println("CreateInvoice Query 1 fail")
-		http.Error(w, "No listing found with ID", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -43,7 +43,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	err = db.DBconn.QueryRow(sqlStatement, listing.ID).Scan(&invoiceID)
 	if err != nil || invoiceID < 0 {
 		fmt.Println("CreateInvoice Query 2 fail")
-		http.Error(w, "Unable to create new invoice", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
