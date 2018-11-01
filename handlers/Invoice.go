@@ -102,7 +102,6 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Printf("Fetching invoices for user ID %d\n", userID)
 
 	sqlStatement := `SELECT i.status, i.invoice_id, l.price, u.user_name, u2.user_name, i.created_at
 					FROM invoices i 
@@ -123,27 +122,12 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 		err = rows.Scan(&invoice.Status, &invoice.ID, &invoice.Price, &invoice.UserName, &invoice.CompanyName, &invoice.CreatedAt)
 		invoices = append(invoices, invoice)
 	}
-	// Geo wants price, date, and company added below
-	// resMap := make(map[string]string)
-	// resMap["message"] = "Success"
-	// resMap["for_listing"] = strconv.Itoa(forListingID)
-	// resMap["invoice_id"] = strconv.Itoa(invoiceID)
 	if err = rows.Err(); err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// res, err := json.Marshal(resMap)
-	// if err != nil {
-	// 	http.Error(w, "Unable to create JSON map", http.StatusInternalServerError)
-	// 	return
-	// }
-	for i := 0; i < len(invoices); i++ {
-		invoice := invoices[i]
-		res, _ := json.Marshal(invoice)
-		fmt.Println(string(res))
-	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(invoices)
 }
