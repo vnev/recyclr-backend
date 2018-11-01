@@ -460,18 +460,16 @@ func DeductUserPoints(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type attributes struct {
-		PointsDeducted int     `json:"points_deducted"`
-		Percentage     float64 `json:"percentage"`
+		Percentage float64 `json:"percentage"`
 	}
 
 	var attr attributes
 	_ = json.NewDecoder(r.Body).Decode(&attr)
 
 	sqlStatement := `UPDATE Listings l 
-					JOIN Users u ON u.user_id=l.user_id 
-					SET l.price=l.price-(l.price*($1/100)), u.points=u.points-$2 
-					WHERE l.listing_id=$3`
-	row, err := db.DBconn.Exec(sqlStatement, attr.Percentage, attr.PointsDeducted, listingID)
+					SET l.price=l.price-(l.price*($1/100))
+					WHERE l.listing_id=$2`
+	row, err := db.DBconn.Exec(sqlStatement, attr.Percentage, listingID)
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
