@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"github.com/vnev/recyclr-backend/db"
 	h "github.com/vnev/recyclr-backend/handlers"
 )
@@ -16,17 +16,6 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		log.Printf("%s %s\n", r.Method, r.URL)
 		// w.Header().Set("Access-Control-Allow-Origin", "*")
 		next.ServeHTTP(w, r)
-	})
-}
-
-func corsHandler(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "OPTIONS" {
-			w.Header().Set("Access-Control-Allow-Credentials", "true")
-			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3333")
-		} else {
-			next.ServeHTTP(w, r)
-		}
 	})
 }
 
@@ -45,7 +34,6 @@ func main() {
 	}) */
 
 	router.Use(loggingMiddleware)
-	router.Use(corsHandler)
 
 	router.HandleFunc("/signin", h.AuthenticateUser).Methods("POST")
 	router.HandleFunc("/charge", h.StripePayment).Methods("POST")
@@ -89,8 +77,13 @@ func main() {
 	db.ConnectToDB()
 	defer db.DBconn.Close()
 
-	// handler := cors.Default().Handler(router)
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3333"},
+		AllowCredentials: true,
+		Debug:            true,
+	})
+	handler := c.Handler(router)
 
 	fmt.Println("Listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(handlers.AllowedOrigins([]string{"http://localhost:3333"}), handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}))(router)))
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }
