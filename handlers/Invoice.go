@@ -109,8 +109,9 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 					INNER JOIN Users u ON u.user_id=$1 
 					INNER JOIN Listings l ON l.listing_id=i.for_listing
 					INNER JOIN Users u2 ON l.frozen_by=u2.user_id
+					WHERE l.user_id=$2
 					ORDER BY i.created_at DESC`
-	rows, err := db.DBconn.Query(sqlStatement, userID)
+	rows, err := db.DBconn.Query(sqlStatement, userID, userID)
 	if err != nil {
 		http.Error(w, "Unable to query DB", http.StatusInternalServerError)
 		return
