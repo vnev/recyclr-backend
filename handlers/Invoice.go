@@ -128,6 +128,10 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 	// 	http.Error(w, "Unable to create JSON map", http.StatusInternalServerError)
 	// 	return
 	// }
+	for i := 0; i < len(invoices); i++ {
+		invoice := invoices[i]
+		fmt.Printf("%s %d %d %d %s %s %s\n", invoice.Status, invoice.ID, invoice.ForListing, invoice.Price, invoice.UserName, invoice.CompanyName, invoice.InvoiceDateTime)
+	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(invoices)
 }
