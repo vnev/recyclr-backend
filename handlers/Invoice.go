@@ -30,6 +30,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	sqlStatement := "SELECT title FROM listings WHERE listing_id=$1"
 	err := db.DBconn.QueryRow(sqlStatement, listing.ID).Scan(&title)
 	if err != nil || title == "" {
+		fmt.Println("CreateInvoice Query 1 fail")
 		http.Error(w, "No listing found with ID", http.StatusBadRequest)
 		return
 	}
@@ -38,6 +39,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	invoiceID := -1
 	err = db.DBconn.QueryRow(sqlStatement, listing.ID).Scan(&invoiceID)
 	if err != nil || invoiceID < 0 {
+		fmt.Println("CreateInvoice Query 2 fail")
 		http.Error(w, "Unable to create new invoice", http.StatusInternalServerError)
 		return
 	}
@@ -46,6 +48,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	sqlStatement = "SELECT user_id, material_weight FROM Listings WHERE id=$1"
 	err = db.DBconn.QueryRow(sqlStatement, listing.ID).Scan(&listingUserID, &listingWeight)
 	if err != nil {
+		fmt.Println("CreateInvoice Query 3 fail")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -54,6 +57,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	sqlStatement = "UPDATE Users SET points=points+$1 WHERE user_id=$2 RETURNING points"
 	err = db.DBconn.QueryRow(sqlStatement, points, listingUserID).Scan(&points)
 	if err != nil {
+		fmt.Println("CreateInvoice Query 4 fail")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -64,6 +68,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	resMap["new_points"] = strconv.Itoa(points)
 	res, err := json.Marshal(resMap)
 	if err != nil {
+		fmt.Println("JSON marshal fail")
 		http.Error(w, "Unable to create JSON map", http.StatusInternalServerError)
 		return
 	}
