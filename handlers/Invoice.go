@@ -22,6 +22,7 @@ type Invoice struct {
 //CreateInvoice creates a new invoice and stores it into the database
 //requires: Listing ID passed into request body
 func CreateInvoice(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("body is %v", r.Body)
 	var listing Listing
 	_ = json.NewDecoder(r.Body).Decode(&listing)
 
