@@ -16,18 +16,18 @@ import (
 
 // User struct contains the user schema in a struct format.
 type User struct {
-	ID        int    `json:"user_id"`
-	Address   string `json:"address"`
-	Email     string `json:"email"`
-	Name      string `json:"name"`
-	IsCompany bool   `json:"is_company"`
-	Rating    int    `json:"rating"`
-	JoinedOn  string `json:"joined_on"`
-	Password  string `json:"passwd"`
-	Token     string `json:"token"`
-	City      string `json:"city"`
-	State     string `json:"state"`
-	Points    int    `json:"points"`
+	ID        int     `json:"user_id"`
+	Address   string  `json:"address"`
+	Email     string  `json:"email"`
+	Name      string  `json:"name"`
+	IsCompany bool    `json:"is_company"`
+	Rating    float32 `json:"rating"`
+	JoinedOn  string  `json:"joined_on"`
+	Password  string  `json:"passwd"`
+	Token     string  `json:"token"`
+	City      string  `json:"city"`
+	State     string  `json:"state"`
+	Points    int     `json:"points"`
 }
 
 // GetUser returns a user from the database in JSON format, given the specific user_id as a URL parameter.
@@ -506,4 +506,10 @@ func DeductUserPoints(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(res)
+}
+
+//UpdateRating updates a user's rating in the database
+func UpdateRating(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 }
