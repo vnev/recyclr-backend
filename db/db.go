@@ -30,33 +30,5 @@ func ConnectToDB() {
 		ConnectToDB()
 	}
 
-	//defer DBconn.Close()
-
-	/*sqlStatement := `
-		INSERT INTO users (age, email, first_name, last_name)
-		VALUES ($1, $2, $3, $4)
-		RETURNING id`
-	id := 0
-	err = db.QueryRow(sqlStatement, 30, "test@test.io", "Test", "Tester").Scan(&id)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("New record ID is:", id)*/
-
-	/*sqlStatement := "select * from users"
-	var (
-		id        int
-		age       int
-		firstName string
-		lastName  string
-		email     string
-	)
-	err = db.QueryRow(sqlStatement).Scan(&id, &age, &firstName, &lastName, &email)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Returned row is id: %d, age: %d, firstName: %s, lastName: %s, email: %s\n", id, age, firstName, lastName, email)*/
-
 	fmt.Println("Successfully connected to database!")
-	//return db
 }
