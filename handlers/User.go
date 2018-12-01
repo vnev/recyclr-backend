@@ -511,5 +511,50 @@ func DeductUserPoints(w http.ResponseWriter, r *http.Request) {
 //UpdateRating updates a user's rating in the database
 func UpdateRating(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	type attributes struct {
+		UserID int     `json:"user_id"` // ID of the user who's rating is being updated
+		Rating float64 `json:"rating"`  // rating for latest transaction
+	}
+	var attr attributes
+	_ = json.NewDecoder(r.Body).Decode(&attr)
 
+	if attr.Rating < 1 {
+		attr.Rating = 1
+	} else if attr.Rating > 5 {
+		attr.Rating = 5
+	}
+
+	var oldNumRatings int
+	var oldRating float64
+	sqlStatement := "SELECT rating, num_ratings FROM Users WHERE user_id=$1"
+	err := db.DBconn.QueryRow(sqlStatement, attr.UserID).Scan(&oldRating, &oldNumRatings)
+	if err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var newRating float64
+	newRating = (oldRating + attr.Rating) / float64(oldNumRatings)
+	oldNumRatings++
+	sqlStatement = "UPDATE Users SET rating=$1, num_ratings=$2 WHERE user_id=$3"
+	_, err = db.DBconn.Exec(sqlStatement, newRating, oldNumRatings, attr.UserID)
+	if err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resMap := make(map[string]string)
+	resMap["message"] = "Success"
+
+	res, err := json.Marshal(resMap)
+	if err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
 }
