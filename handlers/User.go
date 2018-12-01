@@ -519,7 +519,6 @@ func UpdateRating(w http.ResponseWriter, r *http.Request) {
 	var attr attributes
 	errr := json.NewDecoder(r.Body).Decode(&attr)
 	if errr != nil {
-		fmt.Println("yee")
 		fmt.Println(errr)
 		return
 	}
@@ -533,7 +532,7 @@ func UpdateRating(w http.ResponseWriter, r *http.Request) {
 	var companyID int
 	var oldNumRatings int
 	var oldRating float64
-	sqlStatement := "SELECT u.user_id, u.rating, u.num_ratings FROM Users u INNER JOIN Listings l ON l.frozen_by=u.user_id WHERE l.listing_id=$1"
+	sqlStatement := "SELECT u.user_id, u.rating, u.num_ratings FROM Listings l INNER JOIN Users u ON l.frozen_by=u.user_id WHERE l.listing_id=$1"
 	err := db.DBconn.QueryRow(sqlStatement, attr.ListingID).Scan(&companyID, &oldRating, &oldNumRatings)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -542,8 +541,8 @@ func UpdateRating(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var newRating float64
-	newRating = (oldRating + attr.Rating) / float64(oldNumRatings)
 	oldNumRatings++
+	newRating = (oldRating + attr.Rating) / float64(oldNumRatings)
 	sqlStatement = "UPDATE Users SET rating=$1, num_ratings=$2 WHERE user_id=$3"
 	_, err = db.DBconn.Exec(sqlStatement, newRating, oldNumRatings, companyID)
 	if err != nil {

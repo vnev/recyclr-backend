@@ -36,13 +36,13 @@ func main() {
 	router.HandleFunc("/user/{id}/ban", h.BanUser).Methods("GET")
 
 	router.HandleFunc("/user", h.CreateUser).Methods("POST")
+	router.HandleFunc("/user/rating", h.AuthMiddleware(h.UpdateRating)).Methods("PUT")
 	router.HandleFunc("/user/{id}", h.AuthMiddleware(h.UpdateUser)).Methods("PUT")
 	router.HandleFunc("/user/progress/{id}", h.AuthMiddleware(h.GetProgress)).Methods("GET")
 	router.HandleFunc("/user/{id}", h.AuthMiddleware(h.GetUser)).Methods("GET", "OPTIONS")
 	router.HandleFunc("/user/logout", h.AuthMiddleware(h.LogoutUser)).Methods("POST")
 	router.HandleFunc("/user/transactions/{id}", h.AuthMiddleware(h.GetTransactions)).Methods("GET")
 	router.HandleFunc("/user/deduct/{listing_id}", h.AuthMiddleware(h.DeductUserPoints)).Methods("POST")
-	router.HandleFunc("/user/rating", h.AuthMiddleware(h.UpdateRating)).Methods("PUT")
 
 	router.HandleFunc("/company", h.CreateCompany).Methods("POST")
 	router.HandleFunc("/companies", h.AuthMiddleware(h.GetCompanies)).Methods("GET")
