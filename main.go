@@ -14,7 +14,6 @@ import (
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s %s\n", r.Method, r.URL)
-		// w.Header().Set("Access-Control-Allow-Origin", "*")
 		next.ServeHTTP(w, r)
 	})
 }
@@ -28,10 +27,6 @@ func SendBackToken(w http.ResponseWriter, r *http.Request) {
 func main() {
 	// The main router that handles all of our http routes
 	router := mux.NewRouter()
-
-	/* router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s\n", r.Method, r.URL)
-	}) */
 
 	router.Use(loggingMiddleware)
 
@@ -74,7 +69,7 @@ func main() {
 
 	router.HandleFunc("/loaderio-d4781fa6082004ba4e8a3edc3dbc7299.txt", SendBackToken).Methods("GET")
 
-	db.ConnectToDB()
+	db.ConnectToDB("config.json")
 	defer db.DBconn.Close()
 
 	c := cors.New(cors.Options{
