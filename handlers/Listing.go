@@ -424,5 +424,36 @@ func UpdateListing(w http.ResponseWriter, r *http.Request) {
 // DeleteListing deletes a listing from the database given its' listing_id. It will only work if
 // the user sending the request has sufficient admin priveliges.
 func DeleteListing(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	listingID, err := strconv.Atoi(params["id"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
+	sqlStatement := "DELETE FROM Listings WHERE listing_id=$1"
+	row, err := db.DBconn.Exec(sqlStatement, listingID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	affectedCount, err := row.RowsAffected()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resMap := make(map[string]string)
+	resMap["message"] = "Success"
+	resMap["rows affected"] = strconv.FormatInt(affectedCount, 10)
+	res, err := json.Marshal(resMap)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
 }
