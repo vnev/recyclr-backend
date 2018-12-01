@@ -13,6 +13,7 @@ CREATE TABLE Users (
 	last_signed_in 	TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 	is_company 		BOOLEAN NOT NULL,
 	rating 			REAL NOT NULL DEFAULT 0,
+	num_ratings		INT NOT NULL DEFAULT 0,
 	joined_on 		TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 	passwd 			TEXT NOT NULL,
 	token			TEXT NOT NULL DEFAULT '0',
