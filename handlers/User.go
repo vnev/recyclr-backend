@@ -512,8 +512,9 @@ func DeductUserPoints(w http.ResponseWriter, r *http.Request) {
 func UpdateRating(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	type attributes struct {
-		UserID int     `json:"user_id"` // ID of the user who's rating is being updated
-		Rating float64 `json:"rating"`  // rating for latest transaction
+		CompanyID int     `json:"company_id"`
+		ListingID int     `json:"listing_id"` // ID of the user who's rating is being updated
+		Rating    float64 `json:"rating"`     // rating for latest transaction
 	}
 	var attr attributes
 	_ = json.NewDecoder(r.Body).Decode(&attr)
@@ -526,8 +527,8 @@ func UpdateRating(w http.ResponseWriter, r *http.Request) {
 
 	var oldNumRatings int
 	var oldRating float64
-	sqlStatement := "SELECT rating, num_ratings FROM Users WHERE user_id=$1"
-	err := db.DBconn.QueryRow(sqlStatement, attr.UserID).Scan(&oldRating, &oldNumRatings)
+	sqlStatement := "SELECT u.user_id, u.rating, u.num_ratings FROM Users u INNER JOIN Listings l ON l.frozen_by=u.user_id WHERE l.listing_id=$1"
+	err := db.DBconn.QueryRow(sqlStatement, attr.ListingID).Scan(&attr.CompanyID, &oldRating, &oldNumRatings)
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -538,7 +539,7 @@ func UpdateRating(w http.ResponseWriter, r *http.Request) {
 	newRating = (oldRating + attr.Rating) / float64(oldNumRatings)
 	oldNumRatings++
 	sqlStatement = "UPDATE Users SET rating=$1, num_ratings=$2 WHERE user_id=$3"
-	_, err = db.DBconn.Exec(sqlStatement, newRating, oldNumRatings, attr.UserID)
+	_, err = db.DBconn.Exec(sqlStatement, newRating, oldNumRatings, attr.CompanyID)
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
