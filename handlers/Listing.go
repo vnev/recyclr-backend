@@ -243,6 +243,8 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 	listing.ImageHash = hashedFilename
 
 	switch listing.MaterialType {
+	case "Compost":
+		listing.Price = 1.00
 	case "Plastic":
 		listing.Price = 1.50
 	case "Electronics":
@@ -251,8 +253,6 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 		listing.Price = 1.90
 	case "Textiles":
 		listing.Price = 2.00
-	case "Compost":
-		listing.Price = 2.10
 	default:
 		listing.Price = 2.30
 	}
