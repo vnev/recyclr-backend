@@ -16,6 +16,7 @@ type Invoice struct {
 	Status          bool    `json:"invoice_status"`
 	Price           float64 `json:"price"`
 	CreatedAt       string  `json:"created_at"`
+	TxRating        int     `json:"transaction_rating"`
 	CompanyName     string  `json:"company_name"`
 	InvoiceDateTime string  `json:"invoice_date_time"`
 	UserName        string  `json:"user_name"`
@@ -94,6 +95,7 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 		CompanyName string  `json:"company_name"`
 		UserName    string  `json:"user_name"`
 		Title       string  `json:"title"`
+		TxRating    int     `json:"transaction_rating"`
 	}
 
 	var invoices []subinvoice
@@ -104,10 +106,10 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sqlStatement := `SELECT i.status, i.invoice_id, l.listing_id, l.price, l.title, u.user_name, u2.user_name, i.created_at
+	sqlStatement := `SELECT i.status, i.invoice_id, i.transaction_rating, l.listing_id, l.price, l.title, u.user_name, u2.user_name, i.created_at
 					FROM invoices i 
 					INNER JOIN Users u ON u.user_id=$1 
-					INNER JOIN Listings l ON l.listing_id=i.for_listing
+					JOIN Listings l ON l.listing_id=i.for_listing
 					INNER JOIN Users u2 ON l.frozen_by=u2.user_id
 					WHERE l.user_id=$2
 					ORDER BY i.created_at DESC`
@@ -120,7 +122,7 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var invoice subinvoice
-		err = rows.Scan(&invoice.Status, &invoice.ID, &invoice.ListingID, &invoice.Price, &invoice.Title, &invoice.UserName, &invoice.CompanyName, &invoice.CreatedAt)
+		err = rows.Scan(&invoice.Status, &invoice.ID, &invoice.TxRating, &invoice.ListingID, &invoice.Price, &invoice.Title, &invoice.UserName, &invoice.CompanyName, &invoice.CreatedAt)
 		invoices = append(invoices, invoice)
 	}
 	if err = rows.Err(); err != nil {
@@ -131,4 +133,43 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(invoices)
+}
+
+//UpdateInvoiceRating updates the rating associated with a
+// particular transaction/invoice
+func UpdateInvoiceRating(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	type attributes struct {
+		NewRating int `json:"transaction_rating"`
+		InvoiceID int `json:"invoice_id"`
+	}
+
+	var attr attributes
+	_ = json.NewDecoder(r.Body).Decode(&attr)
+
+	sqlStatement := "UPDATE Invoices SET transaction_rating=$1 WHERE invoice_id=$2"
+	row, err := db.DBconn.Exec(sqlStatement, attr.NewRating, attr.InvoiceID)
+	if err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	count, err := row.RowsAffected()
+	if err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resMap := make(map[string]string)
+	resMap["message"] = "Success"
+	resMap["rows affected"] = strconv.Itoa(int(count))
+	res, err := json.Marshal(resMap)
+	if err != nil {
+		fmt.Println("JSON marshal fail")
+		http.Error(w, "Unable to create JSON map", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
 }

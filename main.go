@@ -65,6 +65,7 @@ func main() {
 	router.HandleFunc("/timeslot", h.AuthMiddleware(h.CreateTimeslot)).Methods("POST")
 
 	router.HandleFunc("/invoice/create", h.AuthMiddleware(h.CreateInvoice)).Methods("POST")
+	router.HandleFunc("/invoice/rating", h.AuthMiddleware(h.UpdateInvoiceRating)).Methods("PUT")
 	router.HandleFunc("/invoice/{user_id}", h.AuthMiddleware(h.GetInvoices)).Methods("GET")
 
 	router.HandleFunc("/messages/get", h.AuthMiddleware(h.GetMessages)).Methods("POST")
