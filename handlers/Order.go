@@ -164,9 +164,3 @@ func UpdateOrder(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(res)
 }
-
-// DeleteOrder deletes an order from the database given its' order_id. It will only work if
-// the user sending the request has sufficient admin priveliges.
-func DeleteOrder(w http.ResponseWriter, r *http.Request) {
-
-}
