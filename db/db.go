@@ -30,5 +30,5 @@ func ConnectToDB(path string) {
 		ConnectToDB(path)
 	}
 
-	fmt.Println("Successfully connected to database!")
+	fmt.Println("Successfully connected to the database!")
 }
