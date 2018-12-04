@@ -30,7 +30,7 @@ type Listing struct {
 	MaterialType   string  `json:"material_type"`
 	MaterialWeight float64 `json:"material_weight"`
 	UserID         int     `json:"user_id"`
-	CompanyRating  int     `json:"company_rating"`
+	CompanyRating  float32 `json:"company_rating"`
 	Active         bool    `json:"is_active"`
 	PickupDateTime string  `json:"pickup_date_time"`
 	Address        string  `json:"address"`
