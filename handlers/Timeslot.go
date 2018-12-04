@@ -164,9 +164,3 @@ func UpdateTimeslot(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(res)
 }
-
-// DeleteTimeslot deletes a timeslot from the database given its' time_id. It will only work if
-// the user sending the request has sufficient admin priveliges.
-func DeleteTimeslot(w http.ResponseWriter, r *http.Request) {
-
-}

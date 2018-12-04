@@ -57,24 +57,3 @@ func CreateCompany(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("New company created with ID:", id)
 	json.NewEncoder(w).Encode(company)
 }
-
-// UpdateCompany updates a company in the database, and will return the number of rows updated. It expects
-// the user_id, along with all the fields that are requesting to be changed with their new information.
-func UpdateCompany(w http.ResponseWriter, r *http.Request) {
-
-}
-
-// DeleteCompany deletes a company from the database. It expects the user_id, and will only work if
-// the user sending the request has sufficient admin priveliges.
-func DeleteCompany(w http.ResponseWriter, r *http.Request) {
-	/*var users []User // TODO: actually get this to read in users from the DB
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	for index, user := range users {
-		if user.ID == params["id"] {
-			users = append(users[:index], users[index+1:]...)
-			break
-		}
-	}
-	json.NewEncoder(w).Encode(users)*/
-}
