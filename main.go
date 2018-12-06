@@ -75,12 +75,12 @@ func main() {
 	db.ConnectToDB("config.json")
 	defer db.DBconn.Close()
 
-	c := cors.New(cors.Options{
+	/*c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3333"},
 		AllowCredentials: true,
 		Debug:            true,
 	})
-	handler := c.Handler(router)
+	handler := c.Handler(router)*/
 
 	fmt.Println("Listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", router))
