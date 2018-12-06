@@ -19,7 +19,7 @@ type User struct {
 	ID        int     `json:"user_id"`
 	Address   string  `json:"address"`
 	Email     string  `json:"email"`
-	Name      string  `json:"name"`
+	Name      string  `json:"user_name"`
 	IsCompany bool    `json:"is_company"`
 	Rating    float32 `json:"rating"`
 	JoinedOn  string  `json:"joined_on"`
