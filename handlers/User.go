@@ -406,13 +406,13 @@ func GetProgress(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, active, img_hash FROM listings WHERE user_id=$1", userID)
+	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, active, img_hash, frozen_by FROM listings WHERE user_id=$1", userID)
 	//err = db.DBconn.QueryRow(sqlStatement, userID).Scan(&user.ID, &user.Address, &user.Email, &user.Name, &user.IsCompany, &user.Rating, &user.JoinedOn)
 
 	defer rows.Close()
 	for rows.Next() {
 		var listing Listing
-		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Active, &listing.ImageHash)
+		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Active, &listing.ImageHash, &listing.FrozenBy)
 		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
 		listing.ImageHash = "https://s3.us-east-2.amazonaws.com/recyclr/images/" + listing.ImageHash
 		listings = append(listings, listing)
