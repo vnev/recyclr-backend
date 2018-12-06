@@ -427,7 +427,7 @@ func GetProgress(w http.ResponseWriter, r *http.Request) {
 	sqlStatement := `SELECT u.user_name, l.user_id, l.listing_id, l.title, l.description, 
 	l.material_type, l.material_weight, l.address, l.img_hash, l.pickup_date_time FROM Listings l 
 	INNER JOIN Users u ON l.user_id=u.user_id 
-	WHERE l.active='t' AND u.user_id=$1`
+	WHERE u.user_id=$1`
 
 	rows, err := db.DBconn.Query(sqlStatement, userID)
 	//err = db.DBconn.QueryRow(sqlStatement, userID).Scan(&user.ID, &user.Address, &user.Email, &user.Name, &user.IsCompany, &user.Rating, &user.JoinedOn)
