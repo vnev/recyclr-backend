@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/rs/cors"
 	"github.com/vnev/recyclr-backend/db"
 	h "github.com/vnev/recyclr-backend/handlers"
 )
@@ -27,61 +26,62 @@ func SendBackToken(w http.ResponseWriter, r *http.Request) {
 func main() {
 	// The main router that handles all of our http routes
 	router := mux.NewRouter()
+	apiRouter := router.PathPrefix("/api").Subrouter()
 
 	router.Use(loggingMiddleware)
 
-	router.HandleFunc("/signin", h.AuthenticateUser).Methods("POST")
-	router.HandleFunc("/charge", h.StripePayment).Methods("POST")
-	router.HandleFunc("/user/{id}/delete", h.DeleteUser).Methods("GET")
-	router.HandleFunc("/user/{id}/ban", h.BanUser).Methods("GET")
+	apiRouter.HandleFunc("/signin", h.AuthenticateUser).Methods("POST")
+	apiRouter.HandleFunc("/charge", h.StripePayment).Methods("POST")
+	apiRouter.HandleFunc("/user/{id}/delete", h.DeleteUser).Methods("GET")
+	apiRouter.HandleFunc("/user/{id}/ban", h.BanUser).Methods("GET")
 
-	router.HandleFunc("/user", h.CreateUser).Methods("POST")
-	router.HandleFunc("/user/rating", h.AuthMiddleware(h.UpdateRating)).Methods("PUT")
-	router.HandleFunc("/user/{id}", h.AuthMiddleware(h.UpdateUser)).Methods("PUT")
-	router.HandleFunc("/user/progress/{id}", h.AuthMiddleware(h.GetProgress)).Methods("GET")
-	router.HandleFunc("/user/{id}", h.AuthMiddleware(h.GetUser)).Methods("GET", "OPTIONS")
-	router.HandleFunc("/user/logout", h.AuthMiddleware(h.LogoutUser)).Methods("POST")
-	router.HandleFunc("/user/transactions/{id}", h.AuthMiddleware(h.GetTransactions)).Methods("GET")
-	router.HandleFunc("/user/deduct/{listing_id}", h.AuthMiddleware(h.DeductUserPoints)).Methods("POST")
+	apiRouter.HandleFunc("/user", h.CreateUser).Methods("POST")
+	apiRouter.HandleFunc("/user/rating", h.AuthMiddleware(h.UpdateRating)).Methods("PUT")
+	apiRouter.HandleFunc("/user/{id}", h.AuthMiddleware(h.UpdateUser)).Methods("PUT")
+	apiRouter.HandleFunc("/user/progress/{id}", h.AuthMiddleware(h.GetProgress)).Methods("GET")
+	apiRouter.HandleFunc("/user/{id}", h.AuthMiddleware(h.GetUser)).Methods("GET", "OPTIONS")
+	apiRouter.HandleFunc("/user/logout", h.AuthMiddleware(h.LogoutUser)).Methods("POST")
+	apiRouter.HandleFunc("/user/transactions/{id}", h.AuthMiddleware(h.GetTransactions)).Methods("GET")
+	apiRouter.HandleFunc("/user/deduct/{listing_id}", h.AuthMiddleware(h.DeductUserPoints)).Methods("POST")
 
-	router.HandleFunc("/company", h.CreateCompany).Methods("POST")
-	router.HandleFunc("/companies", h.AuthMiddleware(h.GetCompanies)).Methods("GET")
-	router.HandleFunc("/company/{id}", h.AuthMiddleware(h.GetUser)).Methods("GET")                      // yes it is supposed to be GetUser not GetCompany
-	router.HandleFunc("/company/transactions/{id}", h.AuthMiddleware(h.GetTransactions)).Methods("GET") // also uses the same route as users
-	router.HandleFunc("/company/rating", h.AuthMiddleware(h.UpdateRating)).Methods("PUT")
+	apiRouter.HandleFunc("/company", h.CreateCompany).Methods("POST")
+	apiRouter.HandleFunc("/companies", h.AuthMiddleware(h.GetCompanies)).Methods("GET")
+	apiRouter.HandleFunc("/company/{id}", h.AuthMiddleware(h.GetUser)).Methods("GET")                      // yes it is supposed to be GetUser not GetCompany
+	apiRouter.HandleFunc("/company/transactions/{id}", h.AuthMiddleware(h.GetTransactions)).Methods("GET") // also uses the same route as users
+	apiRouter.HandleFunc("/company/rating", h.AuthMiddleware(h.UpdateRating)).Methods("PUT")
 	// router.HandleFunc("/company/logout", h.AuthMiddleware(h.LogoutUser)).Methods("POST")
 
-	router.HandleFunc("/listings", h.AuthMiddleware(h.GetListings)).Methods("GET")
-	router.HandleFunc("/listing/delete/{id}", h.AuthMiddleware(h.DeleteListing)).Methods("GET")
-	router.HandleFunc("/listing/freeze/{id}", h.AuthMiddleware(h.FreezeListing)).Methods("POST")
-	router.HandleFunc("/listing/unfreeze/{id}", h.AuthMiddleware(h.UnfreezeListing)).Methods("GET")
-	router.HandleFunc("/listing/frozen/{user_id}", h.AuthMiddleware(h.GetFrozenListings)).Methods("POST")
-	router.HandleFunc("/listing/{id}", h.AuthMiddleware(h.GetListing)).Methods("GET")
-	router.HandleFunc("/listing", h.AuthMiddleware(h.CreateListing)).Methods("POST")
-	router.HandleFunc("/listing/{id}/update", h.AuthMiddleware(h.UpdateListing)).Methods("POST")
+	apiRouter.HandleFunc("/listings", h.AuthMiddleware(h.GetListings)).Methods("GET")
+	apiRouter.HandleFunc("/listing/delete/{id}", h.AuthMiddleware(h.DeleteListing)).Methods("GET")
+	apiRouter.HandleFunc("/listing/freeze/{id}", h.AuthMiddleware(h.FreezeListing)).Methods("POST")
+	apiRouter.HandleFunc("/listing/unfreeze/{id}", h.AuthMiddleware(h.UnfreezeListing)).Methods("GET")
+	apiRouter.HandleFunc("/listing/frozen/{user_id}", h.AuthMiddleware(h.GetFrozenListings)).Methods("POST")
+	apiRouter.HandleFunc("/listing/{id}", h.AuthMiddleware(h.GetListing)).Methods("GET")
+	apiRouter.HandleFunc("/listing", h.AuthMiddleware(h.CreateListing)).Methods("POST")
+	apiRouter.HandleFunc("/listing/{id}/update", h.AuthMiddleware(h.UpdateListing)).Methods("POST")
 
-	router.HandleFunc("/timeslots/{id}", h.AuthMiddleware(h.GetTimeslots)).Methods("GET")
-	router.HandleFunc("/timeslot", h.AuthMiddleware(h.CreateTimeslot)).Methods("POST")
+	apiRouter.HandleFunc("/timeslots/{id}", h.AuthMiddleware(h.GetTimeslots)).Methods("GET")
+	apiRouter.HandleFunc("/timeslot", h.AuthMiddleware(h.CreateTimeslot)).Methods("POST")
 
-	router.HandleFunc("/invoice/create", h.AuthMiddleware(h.CreateInvoice)).Methods("POST")
-	router.HandleFunc("/invoice/rating", h.AuthMiddleware(h.UpdateInvoiceRating)).Methods("PUT")
-	router.HandleFunc("/invoice/{user_id}", h.AuthMiddleware(h.GetInvoices)).Methods("GET")
+	apiRouter.HandleFunc("/invoice/create", h.AuthMiddleware(h.CreateInvoice)).Methods("POST")
+	apiRouter.HandleFunc("/invoice/rating", h.AuthMiddleware(h.UpdateInvoiceRating)).Methods("PUT")
+	apiRouter.HandleFunc("/invoice/{user_id}", h.AuthMiddleware(h.GetInvoices)).Methods("GET")
 
-	router.HandleFunc("/messages/get", h.AuthMiddleware(h.GetMessages)).Methods("POST")
-	router.HandleFunc("/messages/new", h.AuthMiddleware(h.PutMessage)).Methods("POST")
+	apiRouter.HandleFunc("/messages/get", h.AuthMiddleware(h.GetMessages)).Methods("POST")
+	apiRouter.HandleFunc("/messages/new", h.AuthMiddleware(h.PutMessage)).Methods("POST")
 
-	router.HandleFunc("/loaderio-d4781fa6082004ba4e8a3edc3dbc7299.txt", SendBackToken).Methods("GET")
+	apiRouter.HandleFunc("/loaderio-d4781fa6082004ba4e8a3edc3dbc7299.txt", SendBackToken).Methods("GET")
 
 	db.ConnectToDB("config.json")
 	defer db.DBconn.Close()
 
-	c := cors.New(cors.Options{
+	/* c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3333"},
 		AllowCredentials: true,
 		Debug:            true,
 	})
-	handler := c.Handler(router)
+	handler := c.Handler(router) */
 
 	fmt.Println("Listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", handler))
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
