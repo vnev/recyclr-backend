@@ -425,8 +425,8 @@ func GetProgress(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sqlStatement := `SELECT u.user_name, l.user_id, l.listing_id, l.title, l.description, 
-	l.material_type, l.material_weight, l.address, l.img_hash, l.pickup_date_time FROM Listings l 
-	INNER JOIN Users u ON l.user_id=u.user_id 
+	l.material_type, l.material_weight, l.address, l.img_hash, l.pickup_date_time, l.frozen_by
+	FROM Listings l INNER JOIN Users u ON l.user_id=u.user_id 
 	WHERE u.user_id=$1`
 
 	rows, err := db.DBconn.Query(sqlStatement, userID)
@@ -435,7 +435,7 @@ func GetProgress(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var listing sublisting
-		err = rows.Scan(&listing.Name, &listing.UserID, &listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Address, &listing.ImageHash, &listing.PickupDateTime)
+		err = rows.Scan(&listing.Name, &listing.UserID, &listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Address, &listing.ImageHash, &listing.PickupDateTime, &listing.FrozenBy)
 		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
 		listing.ImageHash = "https://s3.us-east-2.amazonaws.com/recyclr/images/" + listing.ImageHash
 		listings = append(listings, listing)
