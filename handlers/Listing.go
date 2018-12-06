@@ -30,6 +30,7 @@ type Listing struct {
 	MaterialType   string  `json:"material_type"`
 	MaterialWeight float64 `json:"material_weight"`
 	UserID         int     `json:"user_id"`
+	CompanyRating  float32 `json:"company_rating"`
 	Active         bool    `json:"is_active"`
 	PickupDateTime string  `json:"pickup_date_time"`
 	Address        string  `json:"address"`
@@ -90,14 +91,14 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 
 	sqlStatement := ""
 	if attr.IsCompany {
-		sqlStatement = `SELECT u.user_name, u2.user_name, l.listing_id, l.user_id, l.title, 
+		sqlStatement = `SELECT u.user_name, u2.user_name, l.listing_id, l.user_id, u2.rating, l.title, 
 		l.description, l.material_type, l.material_weight, l.address, l.frozen_by, l.img_hash, l.pickup_date_time 
 		FROM Listings l 
 		INNER JOIN Users u ON l.user_id=u.user_id 
 		INNER JOIN Users u2 ON u2.user_id=l.frozen_by 
 		WHERE l.active='f' and l.frozen_by=$1`
 	} else {
-		sqlStatement = `SELECT u.user_name, u2.user_name, l.listing_id, l.user_id, l.title, 
+		sqlStatement = `SELECT u.user_name, u2.user_name, l.listing_id, l.user_id, u2.rating, l.title, 
 		l.description, l.material_type, l.material_weight, l.address, l.frozen_by, l.img_hash, l.pickup_date_time 
 		FROM Listings l
 		INNER JOIN Users u ON u.user_id=l.user_id
@@ -115,8 +116,9 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var listing Listing
 		err = rows.Scan(&listing.Username, &listing.CompanyName, &listing.ID, &listing.UserID,
-			&listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight,
-			&listing.Address, &listing.FrozenBy, &listing.ImageHash, &listing.PickupDateTime)
+			&listing.CompanyRating, &listing.Title, &listing.Description, &listing.MaterialType,
+			&listing.MaterialWeight, &listing.Address, &listing.FrozenBy, &listing.ImageHash,
+			&listing.PickupDateTime)
 		// TODO: Error check
 		listing.ImageHash = "https://s3.us-east-2.amazonaws.com/recyclr/images/" + listing.ImageHash
 		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
