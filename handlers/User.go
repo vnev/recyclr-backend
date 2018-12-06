@@ -396,7 +396,25 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 // GetProgress gets the progress of a user's listings, returning it in JSON format given their user_id as a URL parameter.
 func GetProgress(w http.ResponseWriter, r *http.Request) {
-	var listings []Listing
+	type sublisting struct {
+		ID             int     `json:"listing_id"`
+		Title          string  `json:"title"`
+		Description    string  `json:"description"`
+		ImageHash      string  `json:"img_hash"`
+		MaterialType   string  `json:"material_type"`
+		MaterialWeight float64 `json:"material_weight"`
+		UserID         int     `json:"user_id"`
+		CompanyRating  float32 `json:"company_rating"`
+		Active         bool    `json:"is_active"`
+		PickupDateTime string  `json:"pickup_date_time"`
+		Address        string  `json:"address"`
+		FrozenBy       int     `json:"frozen_by"`
+		Price          float64 `json:"price"`
+		Username       string  `json:"username"`
+		CompanyName    string  `json:"company_name"`
+		Name           string  `json:"user_name"`
+	}
+	var listings []sublisting
 	w.Header().Set("Content-Type", "application/json")
 
 	params := mux.Vars(r) // Get route params
@@ -406,13 +424,18 @@ func GetProgress(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := db.DBconn.Query("SELECT listing_id, title, description, material_type, material_weight, active, img_hash, frozen_by FROM listings WHERE user_id=$1", userID)
+	sqlStatement := `SELECT u.user_name, l.user_id, l.listing_id, l.title, l.description, 
+	l.material_type, l.material_weight, l.address, l.img_hash, l.pickup_date_time FROM Listings l 
+	INNER JOIN Users u ON l.user_id=u.user_id 
+	WHERE l.active='t' AND u.user_id=$1`
+
+	rows, err := db.DBconn.Query(sqlStatement, userID)
 	//err = db.DBconn.QueryRow(sqlStatement, userID).Scan(&user.ID, &user.Address, &user.Email, &user.Name, &user.IsCompany, &user.Rating, &user.JoinedOn)
 
 	defer rows.Close()
 	for rows.Next() {
-		var listing Listing
-		err = rows.Scan(&listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Active, &listing.ImageHash, &listing.FrozenBy)
+		var listing sublisting
+		err = rows.Scan(&listing.Name, &listing.UserID, &listing.ID, &listing.Title, &listing.Description, &listing.MaterialType, &listing.MaterialWeight, &listing.Address, &listing.ImageHash, &listing.PickupDateTime)
 		//fmt.Printf("ID is %d, Type is %s\n", listing.ID, listing.MaterialType)
 		listing.ImageHash = "https://s3.us-east-2.amazonaws.com/recyclr/images/" + listing.ImageHash
 		listings = append(listings, listing)
