@@ -181,6 +181,7 @@ Package handlers contains all of our handlers for our HTTP routes on our API.
 * [func PutMessage(w http.ResponseWriter, r *http.Request)](#PutMessage)
 * [func StripePayment(w http.ResponseWriter, r *http.Request)](#StripePayment)
 * [func UnfreezeListing(w http.ResponseWriter, r *http.Request)](#UnfreezeListing)
+* [func UpdateInvoiceRating(w http.ResponseWriter, r *http.Request)](#UpdateInvoiceRating)
 * [func UpdateListing(w http.ResponseWriter, r *http.Request)](#UpdateListing)
 * [func UpdateOrder(w http.ResponseWriter, r *http.Request)](#UpdateOrder)
 * [func UpdateRating(w http.ResponseWriter, r *http.Request)](#UpdateRating)
@@ -210,7 +211,7 @@ before accessing protected routes.
 
 
 
-## <a name="AuthenticateUser">func</a> [AuthenticateUser](/src/target/User.go?s=8712:8773#L278)
+## <a name="AuthenticateUser">func</a> [AuthenticateUser](/src/target/User.go?s=8717:8778#L278)
 ``` go
 func AuthenticateUser(w http.ResponseWriter, r *http.Request)
 ```
@@ -218,7 +219,7 @@ AuthenticateUser generates a JWT for the user and returns it in JSON format.
 
 
 
-## <a name="BanUser">func</a> [BanUser](/src/target/User.go?s=7968:8020#L250)
+## <a name="BanUser">func</a> [BanUser](/src/target/User.go?s=7973:8025#L250)
 ``` go
 func BanUser(w http.ResponseWriter, r *http.Request)
 ```
@@ -235,7 +236,7 @@ In the request body, it expects an address, email, user_name, is_company, and pa
 
 
 
-## <a name="CreateInvoice">func</a> [CreateInvoice](/src/target/Invoice.go?s=694:752#L27)
+## <a name="CreateInvoice">func</a> [CreateInvoice](/src/target/Invoice.go?s=747:805#L28)
 ``` go
 func CreateInvoice(w http.ResponseWriter, r *http.Request)
 ```
@@ -244,7 +245,7 @@ requires: Listing ID passed into request body
 
 
 
-## <a name="CreateListing">func</a> [CreateListing](/src/target/Listing.go?s=5983:6041#L174)
+## <a name="CreateListing">func</a> [CreateListing](/src/target/Listing.go?s=6119:6177#L176)
 ``` go
 func CreateListing(w http.ResponseWriter, r *http.Request)
 ```
@@ -269,7 +270,7 @@ CreateTimeslot creates a new timeslot in the database. It expects user_id, day, 
 
 
 
-## <a name="CreateUser">func</a> [CreateUser](/src/target/User.go?s=1818:1873#L59)
+## <a name="CreateUser">func</a> [CreateUser](/src/target/User.go?s=1823:1878#L59)
 ``` go
 func CreateUser(w http.ResponseWriter, r *http.Request)
 ```
@@ -277,7 +278,7 @@ CreateUser creates a new user in the database. It expects address, email, user_n
 
 
 
-## <a name="DeductUserPoints">func</a> [DeductUserPoints](/src/target/User.go?s=14577:14638#L463)
+## <a name="DeductUserPoints">func</a> [DeductUserPoints](/src/target/User.go?s=15583:15644#L486)
 ``` go
 func DeductUserPoints(w http.ResponseWriter, r *http.Request)
 ```
@@ -285,7 +286,7 @@ DeductUserPoints deducts user points and applies new price to listing
 
 
 
-## <a name="DeleteListing">func</a> [DeleteListing](/src/target/Listing.go?s=13377:13435#L426)
+## <a name="DeleteListing">func</a> [DeleteListing](/src/target/Listing.go?s=13502:13560#L428)
 ``` go
 func DeleteListing(w http.ResponseWriter, r *http.Request)
 ```
@@ -294,7 +295,7 @@ the user sending the request has sufficient admin priveliges.
 
 
 
-## <a name="DeleteUser">func</a> [DeleteUser](/src/target/User.go?s=11332:11387#L369)
+## <a name="DeleteUser">func</a> [DeleteUser](/src/target/User.go?s=11337:11392#L369)
 ``` go
 func DeleteUser(w http.ResponseWriter, r *http.Request)
 ```
@@ -303,7 +304,7 @@ the user sending the request has sufficient admin priveliges.
 
 
 
-## <a name="FreezeListing">func</a> [FreezeListing](/src/target/Listing.go?s=9384:9442#L290)
+## <a name="FreezeListing">func</a> [FreezeListing](/src/target/Listing.go?s=9533:9591#L292)
 ``` go
 func FreezeListing(w http.ResponseWriter, r *http.Request)
 ```
@@ -320,7 +321,7 @@ any parameters.
 
 
 
-## <a name="GetFrozenListings">func</a> [GetFrozenListings](/src/target/Listing.go?s=2279:2341#L70)
+## <a name="GetFrozenListings">func</a> [GetFrozenListings](/src/target/Listing.go?s=2342:2404#L71)
 ``` go
 func GetFrozenListings(w http.ResponseWriter, r *http.Request)
 ```
@@ -328,7 +329,7 @@ GetFrozenListings gets all frozen listings for a particular user.
 
 
 
-## <a name="GetInvoices">func</a> [GetInvoices](/src/target/Invoice.go?s=2792:2848#L87)
+## <a name="GetInvoices">func</a> [GetInvoices](/src/target/Invoice.go?s=3100:3156#L96)
 ``` go
 func GetInvoices(w http.ResponseWriter, r *http.Request)
 ```
@@ -337,7 +338,7 @@ the invoice identified by invoice_id (passed into request body)
 
 
 
-## <a name="GetListing">func</a> [GetListing](/src/target/Listing.go?s=1204:1259#L43)
+## <a name="GetListing">func</a> [GetListing](/src/target/Listing.go?s=1252:1307#L44)
 ``` go
 func GetListing(w http.ResponseWriter, r *http.Request)
 ```
@@ -345,7 +346,7 @@ GetListing returns a listing from the database in JSON format, given the specifi
 
 
 
-## <a name="GetListings">func</a> [GetListings](/src/target/Listing.go?s=4567:4623#L137)
+## <a name="GetListings">func</a> [GetListings](/src/target/Listing.go?s=4679:4735#L139)
 ``` go
 func GetListings(w http.ResponseWriter, r *http.Request)
 ```
@@ -378,7 +379,7 @@ given their user_id as a URL parameter.
 
 
 
-## <a name="GetProgress">func</a> [GetProgress](/src/target/User.go?s=12193:12249#L398)
+## <a name="GetProgress">func</a> [GetProgress](/src/target/User.go?s=12198:12254#L398)
 ``` go
 func GetProgress(w http.ResponseWriter, r *http.Request)
 ```
@@ -403,7 +404,7 @@ GetTimeslots returns all timeslots from the database for a specific user or comp
 
 
 
-## <a name="GetTransactions">func</a> [GetTransactions](/src/target/User.go?s=13504:13564#L431)
+## <a name="GetTransactions">func</a> [GetTransactions](/src/target/User.go?s=14510:14570#L454)
 ``` go
 func GetTransactions(w http.ResponseWriter, r *http.Request)
 ```
@@ -411,7 +412,7 @@ GetTransactions returns all orders for a company in JSON format, given their use
 
 
 
-## <a name="GetUser">func</a> [GetUser](/src/target/User.go?s=892:944#L35)
+## <a name="GetUser">func</a> [GetUser](/src/target/User.go?s=897:949#L35)
 ``` go
 func GetUser(w http.ResponseWriter, r *http.Request)
 ```
@@ -420,7 +421,7 @@ TODO: maybe just return a newly defined struct without password field.
 
 
 
-## <a name="LogoutUser">func</a> [LogoutUser](/src/target/User.go?s=10527:10582#L340)
+## <a name="LogoutUser">func</a> [LogoutUser](/src/target/User.go?s=10532:10587#L340)
 ``` go
 func LogoutUser(w http.ResponseWriter, r *http.Request)
 ```
@@ -444,7 +445,7 @@ StripePayment handles a payment from Stripe, given the payment token in a form i
 
 
 
-## <a name="UnfreezeListing">func</a> [UnfreezeListing](/src/target/Listing.go?s=10566:10626#L333)
+## <a name="UnfreezeListing">func</a> [UnfreezeListing](/src/target/Listing.go?s=10703:10763#L335)
 ``` go
 func UnfreezeListing(w http.ResponseWriter, r *http.Request)
 ```
@@ -452,7 +453,16 @@ UnfreezeListing unfreeze a particular listing
 
 
 
-## <a name="UpdateListing">func</a> [UpdateListing](/src/target/Listing.go?s=11635:11693#L369)
+## <a name="UpdateInvoiceRating">func</a> [UpdateInvoiceRating](/src/target/Invoice.go?s=4997:5061#L153)
+``` go
+func UpdateInvoiceRating(w http.ResponseWriter, r *http.Request)
+```
+UpdateInvoiceRating updates the rating associated with a
+particular transaction/invoice
+
+
+
+## <a name="UpdateListing">func</a> [UpdateListing](/src/target/Listing.go?s=11760:11818#L371)
 ``` go
 func UpdateListing(w http.ResponseWriter, r *http.Request)
 ```
@@ -468,7 +478,7 @@ UpdateOrder updates an order in the database, given its' order_id and other fiel
 
 
 
-## <a name="UpdateRating">func</a> [UpdateRating](/src/target/User.go?s=15841:15898#L512)
+## <a name="UpdateRating">func</a> [UpdateRating](/src/target/User.go?s=16847:16904#L535)
 ``` go
 func UpdateRating(w http.ResponseWriter, r *http.Request)
 ```
@@ -484,7 +494,7 @@ UpdateTimeslot updates a timeslot in the database, given its' time_id and other 
 
 
 
-## <a name="UpdateUser">func</a> [UpdateUser](/src/target/User.go?s=2751:2806#L81)
+## <a name="UpdateUser">func</a> [UpdateUser](/src/target/User.go?s=2756:2811#L81)
 ``` go
 func UpdateUser(w http.ResponseWriter, r *http.Request)
 ```
@@ -493,13 +503,14 @@ UpdateUser updates a user in the database, given its' user_id and other fields r
 
 
 
-## <a name="Invoice">type</a> [Invoice](/src/target/Invoice.go?s=204:574#L14)
+## <a name="Invoice">type</a> [Invoice](/src/target/Invoice.go?s=204:627#L14)
 ``` go
 type Invoice struct {
     ID              int     `json:"invoice_id"`
     Status          bool    `json:"invoice_status"`
     Price           float64 `json:"price"`
     CreatedAt       string  `json:"created_at"`
+    TxRating        int     `json:"transaction_rating"`
     CompanyName     string  `json:"company_name"`
     InvoiceDateTime string  `json:"invoice_date_time"`
     UserName        string  `json:"user_name"`
@@ -518,7 +529,7 @@ Invoice struct to hold information pertaining to an invoice
 
 
 
-## <a name="Listing">type</a> [Listing](/src/target/Listing.go?s=452:1086#L25)
+## <a name="Listing">type</a> [Listing](/src/target/Listing.go?s=452:1134#L25)
 ``` go
 type Listing struct {
     ID             int     `json:"listing_id"`
@@ -528,6 +539,7 @@ type Listing struct {
     MaterialType   string  `json:"material_type"`
     MaterialWeight float64 `json:"material_weight"`
     UserID         int     `json:"user_id"`
+    CompanyRating  float32 `json:"company_rating"`
     Active         bool    `json:"is_active"`
     PickupDateTime string  `json:"pickup_date_time"`
     Address        string  `json:"address"`
@@ -616,13 +628,13 @@ Timeslot struct contains the timeslot schema in a struct format.
 
 
 
-## <a name="User">type</a> [User](/src/target/User.go?s=267:709#L18)
+## <a name="User">type</a> [User](/src/target/User.go?s=267:714#L18)
 ``` go
 type User struct {
     ID        int     `json:"user_id"`
     Address   string  `json:"address"`
     Email     string  `json:"email"`
-    Name      string  `json:"name"`
+    Name      string  `json:"user_name"`
     IsCompany bool    `json:"is_company"`
     Rating    float32 `json:"rating"`
     JoinedOn  string  `json:"joined_on"`
