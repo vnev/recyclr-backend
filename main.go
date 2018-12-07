@@ -70,7 +70,7 @@ func main() {
 	apiRouter.HandleFunc("/messages/get", h.AuthMiddleware(h.GetMessages)).Methods("POST")
 	apiRouter.HandleFunc("/messages/new", h.AuthMiddleware(h.PutMessage)).Methods("POST")
 
-	apiRouter.HandleFunc("/loaderio-d4781fa6082004ba4e8a3edc3dbc7299.txt", SendBackToken).Methods("GET")
+	router.HandleFunc("/loaderio-d4781fa6082004ba4e8a3edc3dbc7299.txt", SendBackToken).Methods("GET")
 
 	db.ConnectToDB("config.json")
 	defer db.DBconn.Close()
