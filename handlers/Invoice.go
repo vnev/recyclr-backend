@@ -69,7 +69,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sqlStatement = "UPDATE Listings SET active='t' WHERE listing_id=$1"
+	sqlStatement = "UPDATE Listings SET active='f' WHERE listing_id=$1"
 	_, err = db.DBconn.Exec(sqlStatement, listing.ID)
 	if err != nil {
 		fmt.Println("CreateInvoice Query 5 fail")
