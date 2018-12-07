@@ -20,8 +20,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 //SendBackToken sends back a token for loader.io to verify that we own
 // recyclr.xyz so we can run load tests
 func SendBackToken(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "%s", "loaderio-d4781fa6082004ba4e8a3edc3dbc7299
-	")
+	fmt.Fprintf(w, "%s", "loaderio-d4781fa6082004ba4e8a3edc3dbc7299")
 }
 
 func main() {
