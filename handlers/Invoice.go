@@ -70,7 +70,7 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sqlStatement = "UPDATE Listings SET active='t' WHERE listing_id=$1"
-	row, err = db.DBconn.QueryRow(sqlStatement, listing.ID)
+	_, err = db.DBconn.Exec(sqlStatement, listing.ID)
 	if err != nil {
 		fmt.Println("CreateInvoice Query 5 fail")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
