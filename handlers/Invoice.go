@@ -95,15 +95,14 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 //the invoice identified by invoice_id (passed into request body)
 func GetInvoices(w http.ResponseWriter, r *http.Request) {
 	type subinvoice struct {
-		ListingID   int     `json:"listing_id"`
-		ID          int     `json:"invoice_id"`
-		Status      bool    `json:"invoice_status"`
-		Price       float64 `json:"price"`
-		CreatedAt   string  `json:"created_at"`
-		CompanyName string  `json:"company_name"`
-		UserName    string  `json:"user_name"`
-		Title       string  `json:"title"`
-		TxRating    int     `json:"transaction_rating"`
+		ListingID   int    `json:"listing_id"`
+		ID          int    `json:"invoice_id"`
+		Status      bool   `json:"invoice_status"`
+		CreatedAt   string `json:"created_at"`
+		CompanyName string `json:"company_name"`
+		UserName    string `json:"user_name"`
+		Title       string `json:"title"`
+		TxRating    int    `json:"transaction_rating"`
 	}
 
 	var invoices []subinvoice
@@ -114,7 +113,7 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sqlStatement := `SELECT i.status, i.invoice_id, i.transaction_rating, l.listing_id, l.price, l.title, u.user_name, u2.user_name, i.created_at
+	sqlStatement := `SELECT i.status, i.invoice_id, i.transaction_rating, l.listing_id, l.title, u.user_name, u2.user_name, i.created_at
 					FROM invoices i 
 					INNER JOIN Users u ON u.user_id=$1 
 					INNER JOIN Listings l ON l.listing_id=i.for_listing
@@ -130,7 +129,7 @@ func GetInvoices(w http.ResponseWriter, r *http.Request) {
 	defer rows.Close()
 	for rows.Next() {
 		var invoice subinvoice
-		err = rows.Scan(&invoice.Status, &invoice.ID, &invoice.TxRating, &invoice.ListingID, &invoice.Price, &invoice.Title, &invoice.UserName, &invoice.CompanyName, &invoice.CreatedAt)
+		err = rows.Scan(&invoice.Status, &invoice.ID, &invoice.TxRating, &invoice.ListingID, &invoice.Title, &invoice.UserName, &invoice.CompanyName, &invoice.CreatedAt)
 		if err != nil {
 			fmt.Println(err.Error())
 			http.Error(w, err.Error(), http.StatusInternalServerError)
