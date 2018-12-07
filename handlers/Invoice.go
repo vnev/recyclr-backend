@@ -69,6 +69,14 @@ func CreateInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sqlStatement = "UPDATE Listings SET active='t' WHERE listing_id=$1"
+	row, err = db.DBconn.QueryRow(sqlStatement, listing.ID)
+	if err != nil {
+		fmt.Println("CreateInvoice Query 5 fail")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	resMap := make(map[string]string)
 	resMap["message"] = "Success"
 	resMap["invoice_id"] = strconv.Itoa(invoiceID)

@@ -54,7 +54,7 @@ func GetListing(w http.ResponseWriter, r *http.Request) {
 
 	//fmt.Printf("id route param is %d\n", userID)
 	sqlStatement := `SELECT title, user_id, description, img_hash, material_type, 
-	material_weight, address, active, frozen_by FROM listings WHERE listing_id=$1`
+	material_weight, address, active, frozen_by FROM listings WHERE listing_id=$1 AND active='t'`
 	err = db.DBconn.QueryRow(sqlStatement, listingID).Scan(&listing.Title, &listing.UserID,
 		&listing.Description, &listing.ImageHash, &listing.MaterialType, &listing.MaterialWeight,
 		&listing.Address, &listing.Active, &listing.FrozenBy)
@@ -96,14 +96,14 @@ func GetFrozenListings(w http.ResponseWriter, r *http.Request) {
 		FROM Listings l 
 		INNER JOIN Users u ON l.user_id=u.user_id 
 		INNER JOIN Users u2 ON u2.user_id=l.frozen_by 
-		WHERE l.active='f' and l.frozen_by=$1`
+		WHERE l.frozen_by=$1 AND l.active='t'`
 	} else {
 		sqlStatement = `SELECT u.user_name, u2.user_name, l.listing_id, l.user_id, u2.rating, l.title, 
 		l.description, l.material_type, l.material_weight, l.address, l.frozen_by, l.img_hash, l.pickup_date_time 
 		FROM Listings l
 		INNER JOIN Users u ON u.user_id=l.user_id
 		INNER JOIN Users u2 ON u2.user_id=l.frozen_by
-		WHERE l.active='f' and l.user_id=$1`
+		WHERE l.user_id=$1 AND l.active='t'`
 	}
 	rows, err := db.DBconn.Query(sqlStatement, userID)
 	if err != nil {
@@ -306,7 +306,7 @@ func FreezeListing(w http.ResponseWriter, r *http.Request) {
 	var attr attributes
 	_ = json.NewDecoder(r.Body).Decode(&attr)
 
-	sqlStatement := "UPDATE Listings SET active='f', frozen_by=$1 WHERE listing_id=$2"
+	sqlStatement := "UPDATE Listings SET frozen_by=$1 WHERE listing_id=$2"
 	row, err := db.DBconn.Exec(sqlStatement, attr.CompanyID, listingID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -341,7 +341,7 @@ func UnfreezeListing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sqlStatement := `UPDATE Listings SET active='t', frozen_by=NULL, price=NULL WHERE listing_id=$1`
+	sqlStatement := `UPDATE Listings SET frozen_by=NULL, price=NULL WHERE listing_id=$1`
 	row, err := db.DBconn.Exec(sqlStatement, listingID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
