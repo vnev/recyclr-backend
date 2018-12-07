@@ -262,8 +262,8 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 	userID, _ := strconv.Atoi(r.FormValue("user_id"))
 	listing.UserID = userID
 
-	sqlStatement := `INSERT INTO listings (title, description, img_hash, material_type, material_weight, user_id, address, pickup_date_time, price)
-					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+	sqlStatement := `INSERT INTO listings (title, description, img_hash, material_type, material_weight, user_id, address, pickup_date_time, price, active)
+					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 't')
 					RETURNING listing_id`
 
 	err = db.DBconn.QueryRow(sqlStatement, listing.Title, listing.Description,
