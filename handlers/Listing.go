@@ -255,6 +255,10 @@ func CreateListing(w http.ResponseWriter, r *http.Request) {
 		listing.Price = 1.90
 	case "Textiles":
 		listing.Price = 2.00
+	case "Glass":
+		listing.Price = 2.00
+	case "Metal":
+		listing.Price = 2.30
 	default:
 		listing.Price = 2.30
 	}
